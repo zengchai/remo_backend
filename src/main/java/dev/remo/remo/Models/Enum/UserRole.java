@@ -2,8 +2,8 @@ package dev.remo.remo.Models.Enum;
 
 public enum UserRole {
     
-    USER("user"),
-    ADMIN("admin");
+    ROLE_USER("user"),
+    ROLE_ADMIN("admin");
 
     private final String code;
 

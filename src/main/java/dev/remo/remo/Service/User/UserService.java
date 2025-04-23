@@ -10,6 +10,9 @@ public interface UserService extends UserDetailsService {
     Boolean checkByName(String name);
     Boolean checkByEmail(String email);
     Boolean registerUser(User user);
+    void updateUser(String accessToken,User user);
+    Boolean deleteUser(String accessToken);
+    User getUserByAccessToken(String accessToken);
     UserDetails loadUserByUsername(String email);
 
 }

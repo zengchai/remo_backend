@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -11,42 +12,43 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import dev.remo.remo.Utils.HttpEntityUtils;
+import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
+import dev.remo.remo.Models.Request.CreateOrUpdateListingRequest;
+import dev.remo.remo.Models.Request.PredictPriceRequest;
+import dev.remo.remo.Models.Response.GeneralResponse;
+import dev.remo.remo.Service.Listing.MotorcycleListingService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/listing")
 public class ListingContorller {
 
-    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"; 
+    @Autowired
+    MotorcycleListingService motorcycleListingService;
 
-    @PostMapping("/create")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public Map<String, String> createListing(@Valid @RequestBody String userMessage) {
-        HttpEntity<Map<String, Object>> entity = HttpEntityUtils.buildHttpEntity(userMessage);
-        RestTemplate restTemplate = new RestTemplate();
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
-            System.out.println("Response Status: " + response.getStatusCode());
-            System.out.println("Response Body: " + response.getBody());
+    @PostMapping("/pricepredict")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<?> predictPrice(@Valid @RequestBody PredictPriceRequest predictRequest,
+            HttpServletRequest http) {
+                System.err.println(predictRequest.toString());
+        String response = motorcycleListingService.predictPrice(predictRequest);
+        return ResponseEntity
+                .ok(GeneralResponse.builder().success(true).error("").message(response).build());
+    }
 
-            // Extract response properly with Java 8 compatibility
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody != null && responseBody.containsKey("choices")) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
-                if (!choices.isEmpty() && choices.get(0).containsKey("message")) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return Collections.singletonMap("response", (String) message.get("content"));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Collections.singletonMap("response", "Error: " + e.getMessage());
-        }
-        return null;
+    @PostMapping("/save")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<?> createListing(@Valid @RequestBody CreateOrUpdateListingRequest createListingRequest,
+            HttpServletRequest http) {
+        motorcycleListingService.createOrUpdateMotorcycleListing(createListingRequest,
+                http.getHeader("Authorization").substring(7));
+
+        return ResponseEntity
+                .ok(GeneralResponse.builder().success(true).error("").message("Created successfully").build());
     }
 }

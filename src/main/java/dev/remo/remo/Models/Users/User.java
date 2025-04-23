@@ -23,10 +23,16 @@ public class User implements UserDetails {
     private String dob;
     private List<String> role;
 
-    public User(String email, String password, List<String> roles) {
+    public User(String id,String name, String email, String password, String nric, String phoneNum, String dob,
+            List<String> role) {
+                this.id = id;
+        this.name = name;
         this.email = email;
         this.password = password;
-        this.role = roles;
+        this.nric = nric;
+        this.phoneNum = phoneNum;
+        this.dob = dob;
+        this.role = role;
     }
 
     @Override

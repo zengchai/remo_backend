@@ -1,15 +1,18 @@
-package dev.remo.remo.Models.Motorcycle;
+package dev.remo.remo.Models.MotorcycleModel;
 
 import java.util.List;
 
 import dev.remo.remo.Models.Review.Review;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-public class Motorcycle {
+@Builder
+public class MotorcycleModel {
 
     private String id;
     private String brand;
     private String model;
     private List<Review> reviews;
+
 }

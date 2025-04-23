@@ -2,7 +2,6 @@ package dev.remo.remo.Controllers;
 
 import dev.remo.remo.Models.Request.SignInRequest;
 import dev.remo.remo.Models.Request.SignUpRequest;
-import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Models.Response.JwtResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Service.User.UserService;

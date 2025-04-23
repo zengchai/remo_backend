@@ -1,17 +1,19 @@
 package dev.remo.remo.Utils;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-public class HttpEntityUtils {
+@Component
+public class GroqApiUtils {
 
-    private static final String API_KEY = "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"; // or inject this if needed
+    private static final String API_KEY = "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";
 
-    public static HttpEntity<Map<String, Object>> buildHttpEntity(String userMessage) {
+    public HttpEntity<Map<String,Object>> sendPromptToAiApi(String userMessage) {
 
         // Build headers
         HttpHeaders headers = new HttpHeaders();
@@ -29,9 +31,10 @@ public class HttpEntityUtils {
         messagesList.add(userMessageMap);
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "llama3-8b-8192");
+        requestBody.put("model", "meta-llama/llama-4-scout-17b-16e-instruct");
         requestBody.put("messages", messagesList);
 
         return new HttpEntity<>(requestBody, headers);
     }
+
 }

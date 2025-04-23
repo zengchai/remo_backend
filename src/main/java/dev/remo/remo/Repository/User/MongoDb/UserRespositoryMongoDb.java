@@ -1,5 +1,6 @@
 package dev.remo.remo.Repository.User.MongoDb;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import dev.remo.remo.Models.Users.UserDO;
@@ -24,7 +25,16 @@ public class UserRespositoryMongoDb implements UserRepository {
         }
     }
 
+    public Boolean deleteUser(ObjectId id) {
+        userMongoDb.deleteById(id);
+        return true;
+    }
+
     public UserDO findByEmail(String email){
         return userMongoDb.findByEmail(email);
+    }
+
+    public void updateUser(UserDO user) {
+        UserDO userDO = userMongoDb.save(user);  
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Document(collection = "user")
@@ -26,16 +27,22 @@ public class UserDO {
     @NotBlank
     private String password;
 
-    @NotBlank
+    @NotEmpty
     private List<String> role;
 
     private String nric;
     private String phoneNum;
-    private Date dob;
-     
-    public UserDO(String email, String password, List<String> role) {
+    private String dob;
+
+    public UserDO(@NotBlank String name, @NotBlank String email, @NotBlank String password, @NotBlank List<String> role,
+            String nric, String phoneNum, String dob) {
+        this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.nric = nric;
+        this.phoneNum = phoneNum;
+        this.dob = dob;
     }
+
 }
