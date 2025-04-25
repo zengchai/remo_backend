@@ -19,7 +19,6 @@ public class SignUpRequest {
     @Size(min=8)
     private String password;
 
-    @NotBlank
     private List<String> roles;
 
 }

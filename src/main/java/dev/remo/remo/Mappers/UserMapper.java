@@ -23,13 +23,31 @@ public class UserMapper {
     }
 
     public UserDO convertToUserDO(User user) {
+        UserDO.UserDOBuilder userDOBuilder = UserDO.builder();
+
+        if (!StringUtils.isBlank(user.getNric())) {
+            userDOBuilder.nric(user.getNric());
+            userDOBuilder.phoneNum(user.getPhoneNum());
+            userDOBuilder.imageId(user.getImageId());
+            userDOBuilder.dob(user.getDob());
+        }
+
+        return userDOBuilder
+                .password(user.getPassword())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
+    public UserDO convertToUserDOForUpdate(User user) {
         return UserDO.builder()
                 .id(new ObjectId(user.getId()))
                 .name(user.getName())
                 .nric(user.getNric())
                 .phoneNum(user.getPhoneNum())
-                .dob(user.getDob())
                 .imageId(user.getImageId())
+                .dob(user.getDob())
                 .build();
     }
 

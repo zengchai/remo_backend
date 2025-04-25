@@ -41,7 +41,8 @@ public class UserServiceImpl implements UserService {
             logger.info("Image uploaded with id: " + imageId);
         }
 
-        UserDO userDO = userMapper.convertToUserDO(updatedUser);
+        UserDO userDO = userMapper.convertToUserDOForUpdate(updatedUser);
+        logger.info("User to be updated: " + userDO.toString());
         userRepository.updateUser(userDO);
         logger.info("User updated: " + userDO.toString());
     }

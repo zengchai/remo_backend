@@ -5,7 +5,6 @@ import dev.remo.remo.Models.Request.SignUpRequest;
 import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Models.Response.JwtResponse;
 import dev.remo.remo.Service.Auth.AuthService;
-import dev.remo.remo.Utils.JWTAuth.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
