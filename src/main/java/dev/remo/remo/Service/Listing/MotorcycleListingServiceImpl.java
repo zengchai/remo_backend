@@ -69,7 +69,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
             throw new InvalidStatusException("The listing is already active or sold");
         }
 
-        List<String> removedImageIds = new ArrayList<>();
+        List<ObjectId> removedImageIds = new ArrayList<>();
 
         if (StringUtils.isNotBlank(motorcycleListing.getId())) {
             MotorcycleListing existingListing = getMotorcycleListingById(motorcycleListing.getId());
@@ -87,6 +87,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
 
             removedImageIds = oldImageIds.stream()
                     .filter(id -> !existingImageIds.contains(id))
+                    .map(ObjectId::new)
                     .toList();
 
             imageIds.addAll(existingImageIds);
@@ -123,8 +124,14 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         User currentUser = userService.getUserByAccessToken(accessToken);
         MotorcycleListing motorcycleListing = getMotorcycleListingById(listingId);
         verifyOwnership(motorcycleListing.getUser().getId(), currentUser.getId());
-        motorListingRepository.deleteMotorcycleListingImage(motorcycleListing.getImagesIds());
+        motorListingRepository
+                .deleteMotorcycleListingImage(motorcycleListing.getImagesIds().stream().map(ObjectId::new).toList());
         motorListingRepository.deleteMotorcycleListingById(new ObjectId(listingId));
+    }
+
+    public void updateMotorcycleListingInspection(MotorcycleListing listing, String inspectionId, String userId) {
+        verifyOwnership(listing.getUser().getId(), userId);
+        motorListingRepository.updateMotorcycleListingInspection(new ObjectId(listing.getId()), inspectionId);
     }
 
     public String predictPrice(PredictPriceRequest request) {

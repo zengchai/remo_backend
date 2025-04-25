@@ -8,9 +8,12 @@ import dev.remo.remo.Models.Request.PredictPriceRequest;
 
 public interface MotorcycleListingService {
 
-    void createOrUpdateMotorcycleListing(MultipartFile[] images,CreateOrUpdateListingRequest createOrUpdateListingRequest, String accessToken);
+    void createOrUpdateMotorcycleListing(MultipartFile[] images,
+            CreateOrUpdateListingRequest createOrUpdateListingRequest, String accessToken);
 
     void deleteMotorcycleListingById(String listingId, String accessToken);
+
+    void updateMotorcycleListingInspection(MotorcycleListing listing, String inspectionId, String userId);
 
     String predictPrice(PredictPriceRequest predictPriceRequest);
 

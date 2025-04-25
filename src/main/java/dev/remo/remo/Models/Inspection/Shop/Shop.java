@@ -11,6 +11,6 @@ public class Shop {
     private String name;
     private String address;
     private String mapUrl;
-    private String imageUrl;
+    private String imageId;
     
 }

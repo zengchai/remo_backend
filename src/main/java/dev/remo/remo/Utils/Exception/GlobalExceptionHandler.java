@@ -29,13 +29,20 @@ public class GlobalExceptionHandler {
                 GeneralResponse.builder().success(false).error(ex.getMessage()).build());
     }
 
-    @ExceptionHandler(MultipartfileUploadException.class)
-    public ResponseEntity<?> handleFileUploadException(MultipartfileUploadException ex) {
+    @ExceptionHandler(InternalServerErrorException.class)
+    public ResponseEntity<?> handleFileUploadException(InternalServerErrorException ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                         GeneralResponse.builder().success(false).error(ex.getMessage()).build());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> illegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST).body(
+                        GeneralResponse.builder().success(false).error(ex.getMessage()).build());
+    }
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(

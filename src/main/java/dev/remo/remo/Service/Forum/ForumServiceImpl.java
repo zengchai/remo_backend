@@ -1,9 +1,5 @@
 package dev.remo.remo.Service.Forum;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,16 +50,11 @@ public class ForumServiceImpl implements ForumService {
         });
     }
 
-    private void updateMotorcycleModelReviews(MotorcycleModel model, ReviewDO review) {
-        model.getReviews().add(forumMapper.convertReviewDOToReview(review));
-        motorcycleModelService.updateMotorcycleModelReviewList(model);
-    }
-
     @Transactional
     public void createOrUpdateReview(MultipartFile image, CreateOrUpdateReviewRequest createOrUpdateReviewRequest,
             String accessToken) {
+        logger.info("Creating or updating review: " + createOrUpdateReviewRequest.toString());
         Review review = ForumMapper.toDomain(createOrUpdateReviewRequest);
-        logger.info(review.toString());
 
         User currentUser = userService.getUserByAccessToken(accessToken);
 
@@ -91,27 +82,31 @@ public class ForumServiceImpl implements ForumService {
         review.setUser(currentUser);
         review.setMotorcycleModel(motorcycleModel);
 
-        logger.info("Uploading image: " + image.getOriginalFilename());
         String newImageId = forumRepository.uploadFiles(image);
+        logger.info("New image ID: " + newImageId);
         review.setImageId(newImageId);
 
         ReviewDO reviewDO = forumRepository.createOrUpdateReview(forumMapper.convertReviewToReviewDO(review));
+        motorcycleModel.getReviews().add(forumMapper.convertReviewDOToReview(reviewDO));
+        motorcycleModelService.updateMotorcycleModelReviewList(motorcycleModel);
 
-        updateMotorcycleModelReviews(motorcycleModel, reviewDO);
         logger.info("Review saved: " + reviewDO.toString());
     }
 
     @Transactional
     public void deleteReviewById(String reviewId, String accessToken) {
-
+        logger.info("Deleting review by ID: " + reviewId);
         User currentUser = userService.getUserByAccessToken(accessToken);
         ReviewDO existingReview = getReviewbyId(reviewId);
 
         validateReviewAndOwnership(existingReview, currentUser.getId());
 
-        logger.info("Deleting review: " + existingReview.toString());
         forumRepository.deleteReviewImage(existingReview.getImageId());
+        logger.info("Deleted reviewImage: " + existingReview.getImageId());
         forumRepository.deleteReviewById(new ObjectId(reviewId));
+        logger.info("Deleted review: " + reviewId);
         motorcycleModelService.removeReviewIdListById(existingReview.getMotorcycleModelId(), reviewId);
+        logger.info(
+                "Review ID removed from motorcycle model (" + existingReview.getMotorcycleModelId() + "): " + reviewId);
     }
 }

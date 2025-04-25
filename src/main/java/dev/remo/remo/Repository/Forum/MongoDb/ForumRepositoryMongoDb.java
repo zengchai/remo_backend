@@ -17,7 +17,7 @@ import com.mongodb.client.gridfs.GridFSBuckets;
 
 import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Repository.Forum.ForumRepository;
-import dev.remo.remo.Utils.Exception.MultipartfileUploadException;
+import dev.remo.remo.Utils.Exception.InternalServerErrorException;
 
 public class ForumRepositoryMongoDb implements ForumRepository {
 
@@ -51,7 +51,7 @@ public class ForumRepositoryMongoDb implements ForumRepository {
             ObjectId fileId = bucket.uploadFromStream(fileName, inputStream);
             return fileId.toString();
         } catch (IOException e) {
-            throw new MultipartfileUploadException("Failed to upload file: " + file.getOriginalFilename());
+            throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());
         }
     }
 

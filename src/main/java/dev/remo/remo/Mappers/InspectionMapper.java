@@ -7,6 +7,7 @@ import dev.remo.remo.Models.Inspection.InspectionDO;
 import dev.remo.remo.Models.Inspection.Shop.Shop;
 import dev.remo.remo.Models.Inspection.Shop.ShopDO;
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
+import dev.remo.remo.Models.Request.CreateShopRequest;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 
 @Component
@@ -17,7 +18,6 @@ public class InspectionMapper {
                 .shop(Shop.builder().id(inspectionRequest.getShopId()).build())
                 .date(inspectionRequest.getDate())
                 .time(inspectionRequest.getTime())
-                .status(StatusEnum.PENDING)
                 .build();
     }
 
@@ -25,7 +25,7 @@ public class InspectionMapper {
         return InspectionDO.builder()
                 .date(inspection.getDate())
                 .time(inspection.getTime())
-                .locationId(inspection.getShop().getId())
+                .shopId(inspection.getShop().getId())
                 .status(inspection.getStatus().getCode())
                 .build();
     }
@@ -36,7 +36,24 @@ public class InspectionMapper {
                 .name(shopDO.getName())
                 .address(shopDO.getAddress())
                 .mapUrl(shopDO.getMapUrl())
-                .imageUrl(shopDO.getImageUrl())
+                .imageId(shopDO.getId().toString())
+                .build();
+    }
+
+    public Shop convertRequestToDomain(CreateShopRequest createShopRequest) {
+        return Shop.builder()
+                .name(createShopRequest.getName())
+                .address(createShopRequest.getAddress())
+                .mapUrl(createShopRequest.getMapUrl())
+                .build();
+    }
+
+    public ShopDO convertShopToShopDO(Shop shop) {
+        return ShopDO.builder()
+                .name(shop.getName())
+                .address(shop.getAddress())
+                .mapUrl(shop.getMapUrl())
+                .imageId(shop.getImageId())
                 .build();
     }
 

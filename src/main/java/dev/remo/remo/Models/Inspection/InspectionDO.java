@@ -18,7 +18,7 @@ public class InspectionDO {
     private ObjectId id;
     private String date;
     private String time;
-    private String locationId;
+    private String shopId;
     private Map<String, Map<String, Integer>> vehicleComponentMap;
     private String status;
     private Map<String,String> extInfo;

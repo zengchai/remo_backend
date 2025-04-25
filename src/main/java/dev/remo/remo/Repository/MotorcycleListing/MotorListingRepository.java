@@ -12,8 +12,9 @@ import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 public interface MotorListingRepository {
     MotorcycleListingDO createOrUpdateListing(MotorcycleListingDO listing);
     Optional<MotorcycleListingDO> getListingById(ObjectId listingId);
+    void updateMotorcycleListingInspection(ObjectId id, String inspectionId);
     void deleteMotorcycleListingById(ObjectId listingId);
-    void deleteMotorcycleListingImage(List<String> imageIds);
+    void deleteMotorcycleListingImage(List<ObjectId> imageIds);
     List<String> uploadFiles(MultipartFile[] files);
 
 
