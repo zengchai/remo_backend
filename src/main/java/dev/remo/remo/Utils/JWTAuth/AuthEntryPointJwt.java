@@ -1,4 +1,4 @@
-package dev.remo.remo.Utils;
+package dev.remo.remo.Utils.JWTAuth;
 
 import java.io.IOException;
 

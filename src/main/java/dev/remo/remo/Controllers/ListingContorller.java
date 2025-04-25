@@ -1,21 +1,21 @@
 package dev.remo.remo.Controllers;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
-import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Request.CreateOrUpdateListingRequest;
 import dev.remo.remo.Models.Request.PredictPriceRequest;
 import dev.remo.remo.Models.Response.GeneralResponse;
@@ -28,27 +28,60 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/listing")
 public class ListingContorller {
 
-    @Autowired
-    MotorcycleListingService motorcycleListingService;
+        @Autowired
+        MotorcycleListingService motorcycleListingService;
 
-    @PostMapping("/pricepredict")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<?> predictPrice(@Valid @RequestBody PredictPriceRequest predictRequest,
-            HttpServletRequest http) {
-                System.err.println(predictRequest.toString());
-        String response = motorcycleListingService.predictPrice(predictRequest);
-        return ResponseEntity
-                .ok(GeneralResponse.builder().success(true).error("").message(response).build());
-    }
+        @PostMapping("/pricepredict")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> predictPrice(@Valid @RequestBody PredictPriceRequest predictRequest,
+                        HttpServletRequest http) {
+                String response = motorcycleListingService.predictPrice(predictRequest);
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("").message(response).build());
+        }
 
-    @PostMapping("/save")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<?> createListing(@Valid @RequestBody CreateOrUpdateListingRequest createListingRequest,
-            HttpServletRequest http) {
-        motorcycleListingService.createOrUpdateMotorcycleListing(createListingRequest,
-                http.getHeader("Authorization").substring(7));
+        @PostMapping("/create")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> createListing(
+                        @RequestPart("metadata") @Valid CreateOrUpdateListingRequest request,
+                        @RequestPart(value = "files", required = true) MultipartFile[] newImages,
+                        HttpServletRequest http) {
+                motorcycleListingService.createOrUpdateMotorcycleListing(newImages, request,
+                                http.getHeader("Authorization").substring(7));
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Created successfully").build());
+        }
 
-        return ResponseEntity
-                .ok(GeneralResponse.builder().success(true).error("").message("Created successfully").build());
-    }
+        @PutMapping(value = "/update/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> updateListing(
+                        @PathVariable String id,
+                        @RequestPart("metadata") @Valid CreateOrUpdateListingRequest request,
+                        @RequestPart(value = "files", required = false) MultipartFile[] newImages,
+                        HttpServletRequest http) {
+
+                request.setId(id);
+                motorcycleListingService.createOrUpdateMotorcycleListing(
+                                newImages,
+                                request,
+                                http.getHeader("Authorization").substring(7));
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder()
+                                                .success(true)
+                                                .message("Updated successfully")
+                                                .build());
+        }
+
+        @DeleteMapping("/delete/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> deleteListing(@PathVariable String id, HttpServletRequest http) {
+
+                motorcycleListingService.deleteMotorcycleListingById(id,
+                                http.getHeader("Authorization").substring(7));
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Deleted successfully")
+                                .build());
+
+        }
+
 }

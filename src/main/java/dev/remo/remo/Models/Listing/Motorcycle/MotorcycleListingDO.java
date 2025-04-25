@@ -1,5 +1,7 @@
 package dev.remo.remo.Models.Listing.Motorcycle;
 
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -27,5 +29,7 @@ public class MotorcycleListingDO {
     private String state;
     private String area;
     private String status;
+    private List<String> imagesIds;
+
 
 }

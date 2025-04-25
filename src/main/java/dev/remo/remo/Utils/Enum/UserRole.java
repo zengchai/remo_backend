@@ -1,4 +1,4 @@
-package dev.remo.remo.Models.Enum;
+package dev.remo.remo.Utils.Enum;
 
 public enum UserRole {
     

@@ -1,8 +1,12 @@
 package dev.remo.remo.Models.Inspection;
 
-import org.bson.types.ObjectId;
+import java.util.Map;
 
-import dev.remo.remo.Models.Enum.StatusEnum;
+import dev.remo.remo.Models.Inspection.Shop.Shop;
+import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
+import dev.remo.remo.Models.Users.User;
+import dev.remo.remo.Utils.Enum.StatusEnum;
+import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,6 +15,12 @@ import lombok.Data;
 public class Inspection {
     
     private String id;
-    private int accident;
+    private String date;
+    private String time;
+    private MotorcycleListing motorcycleListing;
+    private User user;
+    private Shop shop;
+    private Map<String, Map<VehicleComponentEnum, Integer>> vehicleComponentMap;
     private StatusEnum status;
+    private Map<String, String> extInfo;
 }

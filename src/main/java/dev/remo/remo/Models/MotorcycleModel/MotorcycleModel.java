@@ -1,8 +1,9 @@
 package dev.remo.remo.Models.MotorcycleModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import dev.remo.remo.Models.Review.Review;
+import dev.remo.remo.Models.Forum.Review;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class MotorcycleModel {
     private String id;
     private String brand;
     private String model;
-    private List<Review> reviews;
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
 
 }

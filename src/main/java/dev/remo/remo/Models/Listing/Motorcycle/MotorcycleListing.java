@@ -1,9 +1,11 @@
 package dev.remo.remo.Models.Listing.Motorcycle;
 
-import dev.remo.remo.Models.Enum.StatusEnum;
+import java.util.List;
+
 import dev.remo.remo.Models.Inspection.Inspection;
 import dev.remo.remo.Models.Listing.Listing;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
+import dev.remo.remo.Utils.Enum.StatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,5 +28,6 @@ public class MotorcycleListing extends Listing {
     private String phoneNumber;
     private String state;
     private String area;
+    private List<String> imagesIds;
 
 }

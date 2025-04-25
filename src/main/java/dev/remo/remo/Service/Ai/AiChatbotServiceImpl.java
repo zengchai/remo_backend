@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
 import dev.remo.remo.Models.Request.PredictPriceRequest;
-import dev.remo.remo.Utils.GroqApiUtils;
+import dev.remo.remo.Utils.AI.GroqApiUtils;
 
 public class AiChatbotServiceImpl implements AiChatbotService {
 

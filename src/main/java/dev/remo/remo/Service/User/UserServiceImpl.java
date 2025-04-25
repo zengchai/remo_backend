@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Repository.User.UserRepository;
-import dev.remo.remo.Utils.JwtUtils;
+import dev.remo.remo.Utils.JWTAuth.JwtUtils;
 
 public class UserServiceImpl implements UserService {
 

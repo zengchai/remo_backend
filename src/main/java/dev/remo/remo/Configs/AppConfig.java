@@ -7,20 +7,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import dev.remo.remo.Service.Ai.AiChatbotService;
 import dev.remo.remo.Service.Ai.AiChatbotServiceImpl;
-import dev.remo.remo.Service.Forum.ReviewService;
-import dev.remo.remo.Service.Forum.ReviewServiceImpl;
+import dev.remo.remo.Service.Forum.ForumService;
+import dev.remo.remo.Service.Forum.ForumServiceImpl;
+import dev.remo.remo.Service.Inspection.InspectionService;
+import dev.remo.remo.Service.Inspection.InspectionServiceImpl;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
 import dev.remo.remo.Service.Listing.MotorcycleListingServiceImpl;
 import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelService;
 import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelServiceImpl;
 import dev.remo.remo.Service.User.UserService;
 import dev.remo.remo.Service.User.UserServiceImpl;
-import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
-import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
+import dev.remo.remo.Repository.Forum.ForumRepository;
+import dev.remo.remo.Repository.Forum.MongoDb.ForumRepositoryMongoDb;
+import dev.remo.remo.Repository.Inspection.InspectionRepository;
+import dev.remo.remo.Repository.Inspection.MongoDb.InspectionRepositoryMongoDb;
 import dev.remo.remo.Repository.MotorcycleListing.MotorListingRepository;
 import dev.remo.remo.Repository.MotorcycleListing.MongoDb.MotorListingRepositoryMongoDb;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
 import dev.remo.remo.Repository.MotorcycleModel.MongoDb.MotorcycleModelRepositoryMongoDb;
+import dev.remo.remo.Repository.Shop.ShopRepository;
+import dev.remo.remo.Repository.Shop.MongoDb.ShopRepositoryMongo;
 import dev.remo.remo.Repository.User.UserRepository;
 import dev.remo.remo.Repository.User.MongoDb.UserRespositoryMongoDb;
 
@@ -34,18 +40,28 @@ public class AppConfig {
     }
 
     @Bean
-    ReviewService reviewService() {
-        return new ReviewServiceImpl();
+    ForumService reviewService() {
+        return new ForumServiceImpl();
     }
 
     @Bean
-    MotorcycleModelService motorcycleService() {
+    MotorcycleModelService motorcycleModelService() {
         return new MotorcycleModelServiceImpl();
     }
 
     @Bean
     MotorcycleListingService motorcycleListingService() {
         return new MotorcycleListingServiceImpl();
+    }
+
+    @Bean
+    InspectionService inspectionService() {
+        return new InspectionServiceImpl();
+    }
+
+    @Bean
+    AiChatbotService aiChatbotService() {
+        return new AiChatbotServiceImpl();
     }
 
     // Repository Layer
@@ -55,7 +71,7 @@ public class AppConfig {
     }
 
     @Bean
-    MotorcycleModelRepository motorcycleRepository() {
+    MotorcycleModelRepository motorcycleModelRepository() {
         return new MotorcycleModelRepositoryMongoDb();
     }
 
@@ -65,12 +81,24 @@ public class AppConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Returns a new instance of BCryptPasswordEncoder
+    ForumRepository forumRepository() {
+        return new ForumRepositoryMongoDb();
     }
 
     @Bean
-    public AiChatbotService aiChatbotService() {
-        return new AiChatbotServiceImpl(); // Returns a new instance of AiChatbotServiceImpl
+    InspectionRepository inspectionRepository() {
+        return new InspectionRepositoryMongoDb();
     }
+
+    @Bean
+    ShopRepository shopRepository() {
+        return new ShopRepositoryMongo();
+    }
+
+    // Utils
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
 }

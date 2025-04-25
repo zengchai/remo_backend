@@ -1,4 +1,4 @@
-package dev.remo.remo.Utils;
+package dev.remo.remo.Utils.AI;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

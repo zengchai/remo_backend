@@ -22,8 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import dev.remo.remo.Service.User.UserService;
-import dev.remo.remo.Utils.AuthEntryPointJwt;
-import dev.remo.remo.Utils.AuthTokenFilter;
+import dev.remo.remo.Utils.JWTAuth.AuthEntryPointJwt;
+import dev.remo.remo.Utils.JWTAuth.AuthTokenFilter;
 
 @Configuration // Marks the class as a source of bean definitions
 @EnableMethodSecurity
@@ -42,7 +42,7 @@ public class WebSecurityConfig {
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter(); // Returns a new instance of AuthTokenFilter
+        return new AuthTokenFilter(); 
     }
 
     @Bean
