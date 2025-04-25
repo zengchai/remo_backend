@@ -45,8 +45,9 @@ public class ListingContorller {
                         @RequestPart("metadata") @Valid CreateOrUpdateListingRequest request,
                         @RequestPart(value = "files", required = true) MultipartFile[] newImages,
                         HttpServletRequest http) {
-                motorcycleListingService.createOrUpdateMotorcycleListing(newImages, request,
-                                http.getHeader("Authorization").substring(7));
+
+                motorcycleListingService.createOrUpdateMotorcycleListing(newImages, request);
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Created successfully").build());
         }
@@ -60,10 +61,24 @@ public class ListingContorller {
                         HttpServletRequest http) {
 
                 request.setId(id);
-                motorcycleListingService.createOrUpdateMotorcycleListing(
-                                newImages,
-                                request,
-                                http.getHeader("Authorization").substring(7));
+                motorcycleListingService.createOrUpdateMotorcycleListing(newImages,request);
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder()
+                                                .success(true)
+                                                .message("Updated successfully")
+                                                .build());
+        }
+
+        @PutMapping(value = "/updateStatus/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> updateListingStatus(
+                        @PathVariable String id,
+                        @RequestPart(required = true) String status,
+                        @RequestPart(required = true) String remark,
+                        HttpServletRequest http) {
+
+                motorcycleListingService.updateMotorcycleListingStatus(id,status, remark);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder()
@@ -76,8 +91,8 @@ public class ListingContorller {
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> deleteListing(@PathVariable String id, HttpServletRequest http) {
 
-                motorcycleListingService.deleteMotorcycleListingById(id,
-                                http.getHeader("Authorization").substring(7));
+                motorcycleListingService.deleteMotorcycleListingById(id);
+                
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Deleted successfully")
                                 .build());

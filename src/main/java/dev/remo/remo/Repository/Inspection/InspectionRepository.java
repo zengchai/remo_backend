@@ -12,4 +12,5 @@ public interface InspectionRepository {
     Optional<InspectionDO> getInspectionById(ObjectId inspectionId);
     void updateInspectionStatus(ObjectId inspectionId, String status, Map<String,String> extInfo);
     void updateInspectionReport(ObjectId inspectionId, String status, Map<String,Map<String,Integer>> componentScore, Map<String,String> extInfo);
+    void deleteInspection(ObjectId inspectionId);
 }

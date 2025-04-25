@@ -1,6 +1,7 @@
 package dev.remo.remo.Models.Listing.Motorcycle;
 
 import java.util.List;
+import java.util.Map;
 
 import dev.remo.remo.Models.Inspection.Inspection;
 import dev.remo.remo.Models.Listing.Listing;
@@ -29,5 +30,6 @@ public class MotorcycleListing extends Listing {
     private String state;
     private String area;
     private List<String> imagesIds;
+    private Map<String, String> extInfo;
 
 }

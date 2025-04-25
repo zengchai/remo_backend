@@ -2,14 +2,13 @@ package dev.remo.remo.Controllers;
 
 import dev.remo.remo.Models.Request.SignInRequest;
 import dev.remo.remo.Models.Request.SignUpRequest;
+import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Models.Response.JwtResponse;
-import dev.remo.remo.Models.Users.User;
-import dev.remo.remo.Service.User.UserService;
+import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Utils.JWTAuth.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,43 +19,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
-    UserService userService;
+    AuthService authService;
 
     @Autowired
     AuthenticationManager authenticationManager;
 
-    @Autowired
-    JwtUtils jwtUtils;
-
     @PostMapping("/signup")
     public ResponseEntity<?> register(@Valid @RequestBody SignUpRequest request) {
 
-        if (userService.checkByEmail(request.getEmail())) {
-            return ResponseEntity.ok(JwtResponse.builder()
-            .success(false)
-            .token("")
-            .error("Email is exist in the system")
-            .message("")
-            .build());
-        }
+        authService.registerUser(request);
 
-        if (userService.registerUser(request.convertToUser())) {
-            return ResponseEntity.ok(JwtResponse.builder()
-                    .success(true)
-                    .token("")
-                    .error("")
-                    .message("Register Successful")
-                    .build());
-        }
-
-        return ResponseEntity.badRequest().body("Register Unsuccessful");
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .success(true)
+                .message("Register Successful")
+                .build());
     }
 
     @PostMapping("/signin")
@@ -67,58 +49,30 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        JwtResponse jwtResponse = authService.signIn(request, response, authentication);
 
-        String accessToken = jwtUtils.generateAccessToken(authentication);
-        String refreshToken = jwtUtils.generateRefreshToken(authentication);
-        jwtUtils.setJwtCookie(response, refreshToken);
-
-        // Get user details from the authentication object
-        User user = (User) authentication.getPrincipal();
-
-        // Return a response containing the JWT and user details
-        return ResponseEntity.ok(
-                JwtResponse.builder()
-                        .token(accessToken)
-                        .email(user.getEmail())
-                        .roles(user.getRole())
-                        .success(true)
-                        .error("")
-                        .message("")
-                        .build());
+        return ResponseEntity.ok(jwtResponse);
     }
 
-    // Refresh access token using refresh token
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response) {
-        if (refreshToken == null || !jwtUtils.validateRefreshToken(refreshToken)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
-        }
 
-        User user = (User) userService.loadUserByUsername(jwtUtils.getEmailFromRefreshToken(refreshToken));
-        // Generate new tokens
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
-        String newAccessToken = jwtUtils.generateAccessToken(authentication);
-        String newRefreshToken = jwtUtils.generateRefreshToken(authentication);
+        JwtResponse jwtResponse = authService.refreshToken(refreshToken, response);
 
-        // Update refresh token cookie
-        jwtUtils.setJwtCookie(response, newRefreshToken);
-
-        return ResponseEntity.ok(
-                JwtResponse.builder()
-                        .token(newAccessToken)
-                        .email(user.getEmail())
-                        .roles(user.getRole())
-                        .success(true)
-                        .error("")
-                        .message("")
-                        .build());
+        return ResponseEntity.ok(jwtResponse);
     }
 
     @PostMapping("/signout")
     public ResponseEntity<?> logoutUser(HttpServletResponse response) {
-        jwtUtils.cleanJwtCookie(response);
-        return ResponseEntity.ok("Logged out successfully");
+
+        authService.signOut(response);
+
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .success(true)
+                .message("Logged out successfully")
+                .build());
     }
 }

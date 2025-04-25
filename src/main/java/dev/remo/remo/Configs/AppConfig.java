@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import dev.remo.remo.Service.Ai.AiChatbotService;
 import dev.remo.remo.Service.Ai.AiChatbotServiceImpl;
+import dev.remo.remo.Service.Auth.AuthService;
+import dev.remo.remo.Service.Auth.AuthServiceImpl;
 import dev.remo.remo.Service.Forum.ForumService;
 import dev.remo.remo.Service.Forum.ForumServiceImpl;
 import dev.remo.remo.Service.Inspection.InspectionService;
@@ -34,6 +36,10 @@ import dev.remo.remo.Repository.User.MongoDb.UserRespositoryMongoDb;
 public class AppConfig {
 
     // Service Layer
+    @Bean
+    AuthService authService() {
+        return new AuthServiceImpl();
+    }
     @Bean
     UserService userService() {
         return new UserServiceImpl();

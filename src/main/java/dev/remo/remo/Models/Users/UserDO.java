@@ -9,10 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
 import lombok.Data;
 
 @Document(collection = "user")
 @Data
+@Builder
 public class UserDO {
     
     @Id
@@ -32,17 +34,8 @@ public class UserDO {
 
     private String nric;
     private String phoneNum;
+    private String imageId;
     private String dob;
 
-    public UserDO(@NotBlank String name, @NotBlank String email, @NotBlank String password, @NotBlank List<String> role,
-            String nric, String phoneNum, String dob) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.role = role;
-        this.nric = nric;
-        this.phoneNum = phoneNum;
-        this.dob = dob;
-    }
 
 }

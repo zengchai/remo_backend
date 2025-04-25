@@ -7,12 +7,14 @@ import dev.remo.remo.Models.Request.CreateShopRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
 
 public interface InspectionService {
-    void createInspection(CreateInspectionRequest createOrUpdateInspectionRequest, String accessToken);
+    void createInspection(CreateInspectionRequest createOrUpdateInspectionRequest);
 
-    void updateInspectionStatus(String inspectionId, String status, String remark, String accessToken);
+    void updateInspectionStatus(String inspectionId, String status, String remark);
 
-    void updateInspectionReport(String id, UpdateInspectionRequest updateInspectionRequest, String accessToken);
+    void updateInspectionReport(String id, UpdateInspectionRequest updateInspectionRequest);
 
-    void createShop(MultipartFile image, CreateShopRequest createShopRequest, String accessToken);
+    void createShop(MultipartFile image, CreateShopRequest createShopRequest);
+
+    void deleteInspection(String id);
 
 }

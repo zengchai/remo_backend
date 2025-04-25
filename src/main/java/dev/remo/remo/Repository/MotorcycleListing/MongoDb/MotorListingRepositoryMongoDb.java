@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -75,5 +76,13 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
 
     public void deleteMotorcycleListingById(ObjectId listingId) {
         motorListingMongoDb.deleteById(listingId);
+    }
+
+    public void updateMotorcycleListingStatus(ObjectId objectId, String status, Map<String, String> extInfo){
+        Query query = new Query(Criteria.where("_id").is(objectId));
+        Update update = new Update()
+                .set("status", status)
+                .set("extInfo", extInfo);
+        mongoTemplate.updateFirst(query, update, MotorcycleListingDO.class);
     }
 }

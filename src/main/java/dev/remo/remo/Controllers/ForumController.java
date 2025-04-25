@@ -31,8 +31,7 @@ public class ForumController {
                         @RequestPart(value = "file", required = true) MultipartFile newImage,
                         HttpServletRequest http) {
 
-                forumService.createOrUpdateReview(newImage,
-                                createOrUpdateReviewRequest, http.getHeader("Authorization").substring(7));
+                forumService.createOrUpdateReview(newImage,createOrUpdateReviewRequest);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Saved successfully")
@@ -44,7 +43,7 @@ public class ForumController {
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> deleteReview(@PathVariable String id, HttpServletRequest http) {
 
-                forumService.deleteReviewById(id, http.getHeader("Authorization").substring(7));
+                forumService.deleteReviewById(id);
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Deleted successfully")
                                 .build());

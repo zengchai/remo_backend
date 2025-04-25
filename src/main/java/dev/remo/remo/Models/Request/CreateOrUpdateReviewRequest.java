@@ -1,7 +1,5 @@
 package dev.remo.remo.Models.Request;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

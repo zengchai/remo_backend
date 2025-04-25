@@ -48,4 +48,8 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         return inspectionMongoDb.findById(inspectionId);
     }
 
+    public void deleteInspection(ObjectId inspectionId) {
+        inspectionMongoDb.deleteById(inspectionId);
+    }
+
 }

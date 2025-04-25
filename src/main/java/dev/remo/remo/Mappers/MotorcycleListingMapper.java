@@ -29,7 +29,7 @@ public class MotorcycleListingMapper {
                         .build())
                 .inspection(Inspection.builder().status(StatusEnum.NOT_STARTED).build())
                 .date(request.getDate())
-                .status(StatusEnum.fromCode(request.getStatus()))
+                .status(StatusEnum.SUBMITTED)
                 .manufacturedYear(request.getManufacturedYear())
                 .mileage(request.getMileage())
                 .cubicCapacity(request.getCubicCapacity())
@@ -63,6 +63,7 @@ public class MotorcycleListingMapper {
                 .date(motorcycleListing.getDate())
                 .state(motorcycleListing.getState())
                 .area(motorcycleListing.getArea())
+                .status(motorcycleListing.getStatus().getCode())
                 .build();
 
     }

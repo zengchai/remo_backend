@@ -1,96 +1,58 @@
 package dev.remo.remo.Service.User;
 
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
+import dev.remo.remo.Mappers.UserMapper;
+import dev.remo.remo.Models.Request.UpdateUserRequest;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Repository.User.UserRepository;
-import dev.remo.remo.Utils.JWTAuth.JwtUtils;
+import dev.remo.remo.Service.Auth.AuthService;
+import io.micrometer.common.util.StringUtils;
 
 public class UserServiceImpl implements UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     UserRepository userRepository;
 
     @Autowired
-    PasswordEncoder encoder;
+    AuthService authService;
 
     @Autowired
-    JwtUtils jwtUtils;
-    public Boolean checkByName(String name) {
-        return userRepository.checkByName(name);
-    }
+    UserMapper userMapper;
 
-    public Boolean checkByEmail(String email) {
-        UserDO userDO = userRepository.findByEmail(email);
-        if (userDO != null) {
-            return true;
-        } else {
-            return false;
+    public void updateUser(String id, MultipartFile image, UpdateUserRequest updateUserRequest) {
+        logger.info("Update user with id: " + id);
+        User updatedUser = userMapper.convertUpdateRequestUserToUser(updateUserRequest);
+        User existingUser = authService.validateUser(id);
+        updatedUser.setId(existingUser.getId());
+
+        if (image != null && !image.isEmpty()) {
+            if (!StringUtils.isBlank(existingUser.getImageId())) {
+                userRepository.deleteImage(new ObjectId(existingUser.getImageId()));
+            }
+            String imageId = userRepository.uploadImage(image);
+            updatedUser.setImageId(imageId);
+            logger.info("Image uploaded with id: " + imageId);
         }
-    }
 
-    public Boolean registerUser(User user) {
-        // Encode the password
-        user.setPassword(encoder.encode(user.getPassword()));
-
-        // Save the user to db
-        return userRepository.saveUser(convertToUserDO(user));
-    }
-
-    public void updateUser(String accessToken,User updateUser) {
-
-        User user = getUserByAccessToken(accessToken);
-        updateUser.setId(user.getId());
-        updateUser.setEmail(user.getEmail());
-        updateUser.setPassword(user.getPassword());
-        updateUser.setRole(user.getRole());
-        System.err.println(updateUser.toString());
-
-        UserDO userDO = convertToUserDO(updateUser);
-        userDO.setId(new ObjectId(updateUser.getId()));
-
-        // Save the user to db
+        UserDO userDO = userMapper.convertToUserDO(updatedUser);
         userRepository.updateUser(userDO);
-        System.err.println(userDO.toString());
+        logger.info("User updated: " + userDO.toString());
     }
 
-    public Boolean deleteUser(String accessToken){
-        User user = getUserByAccessToken(accessToken);
+    public void deleteUser(String id) {
+        User user = authService.validateUser(id);
+
         userRepository.deleteUser(new ObjectId(user.getId()));
-        return true;
-    }
+        logger.info("User deleted: " + user.getId());
 
-    public User getUserByAccessToken(String accessToken){
-        String email = jwtUtils.getEmailFromAccessToken(accessToken);
-        User user = (User) loadUserByUsername(email);
-        return user;
+        userRepository.deleteImage(new ObjectId(user.getImageId()));
+        logger.info("Image deleted: " + user.getImageId());
     }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Fetch user by email (instead of username)
-        User user = convertToUser(userRepository.findByEmail(email));
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + email);
-        }
-
-        // Return the User object (which implements UserDetails)
-        return user;
-    }
-
-    public UserDO convertToUserDO(User user) {
-        return new UserDO(user.getUsername(), user.getEmail(), user.getPassword(), user.getRole(), user.getNric(),
-                user.getPhoneNum(), user.getDob());
-    }
-
-    public User convertToUser(UserDO userDO) {
-        return new User(userDO.getId().toString(),userDO.getName(), userDO.getEmail(), userDO.getPassword(), userDO.getNric(),
-                userDO.getPhoneNum(), userDO.getDob(), userDO.getRole());
-    }
-    
 }

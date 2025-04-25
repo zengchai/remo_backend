@@ -10,7 +10,7 @@ import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 import dev.remo.remo.Mappers.MotorcycleModelMapper;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
-import dev.remo.remo.Utils.Exception.NotFoundException;
+import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 
 public class MotorcycleModelServiceImpl implements MotorcycleModelService {
 
@@ -32,7 +32,7 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
 
     public MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model) {
         MotorcycleModelDO motorcycleDO = motorcycleModelRepository.findByBrandAndModel(brand, model)
-                .orElseThrow(() -> new NotFoundException(brand + " " + model + " not found"));
+                .orElseThrow(() -> new NotFoundResourceException(brand + " " + model + " not found"));
         return motorcycleModelMapper.convertModelDOToModel(motorcycleDO);
     }
 
@@ -45,12 +45,12 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
 
         // Check if the model exists
         MotorcycleModelDO motorcycleModelDO = motorcycleModelRepository.getMotorcycleModelById(new ObjectId(modelId))
-                .orElseThrow(() -> new NotFoundException("Motorcycle model not found"));
+                .orElseThrow(() -> new NotFoundResourceException("Motorcycle model not found"));
 
         // Check if the review exists in the model
         List<String> reviewIds = motorcycleModelDO.getReviews();
         if (!reviewIds.contains(reviewId)) {
-            throw new NotFoundException("Review not found in motorcycle model");
+            throw new NotFoundResourceException("Review not found in motorcycle model");
         }
         reviewIds.remove(reviewId);
         motorcycleModelDO.setReviews(reviewIds);

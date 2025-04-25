@@ -2,8 +2,6 @@ package dev.remo.remo.Models.Request;
 
 import java.util.List;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -33,8 +31,6 @@ public class CreateOrUpdateListingRequest {
     private String date;
     @NotBlank
     private String price;
-    @NotBlank
-    private String status;
     
     private List<String> existingImageIds;
 

@@ -80,22 +80,8 @@ public boolean validateRefreshToken(String token) {
 }
 
   public boolean validateJwtToken(String token, Key key) {
-    try {
-      logger.debug("Validating token: {}", token); // Log the received token
-      // Parse the token and verify its signature
-      Jwts.parserBuilder().setSigningKey(key).build().parse(token);
-      return true; // Token is valid
-    } catch (MalformedJwtException e) {
-      logger.error("Invalid JWT token: {}", e.getMessage()); // Log invalid token error
-    } catch (ExpiredJwtException e) {
-      logger.error("JWT token is expired: {}", e.getMessage()); // Log expired token error
-    } catch (UnsupportedJwtException e) {
-      logger.error("JWT token is unsupported: {}", e.getMessage()); // Log unsupported token error
-    } catch (IllegalArgumentException e) {
-      logger.error("JWT claims string is empty: {}", e.getMessage()); // Log empty claims error
-    }
-
-    return false; // Token is invalid
+    Jwts.parserBuilder().setSigningKey(key).build().parse(token);
+    return true;
   }
 
   public void setJwtCookie(HttpServletResponse response, String token) {

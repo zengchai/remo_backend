@@ -11,7 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import dev.remo.remo.Service.User.UserService;
+import dev.remo.remo.Service.Auth.AuthService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,35 +24,39 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class); // Logger for logging errors
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         try {
-    
-            // Extract JWT token from the request
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateAccessToken(jwt)) {
-                // Extract username from the token
-                String username = jwtUtils.getEmailFromAccessToken(jwt);
-    
-                // Load user details from the database
-                UserDetails userDetails = userService.loadUserByUsername(username);
-    
-                // Create an Authentication object
-                UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-    
-                // Set the Authentication object in the SecurityContext
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                authenticateUser(jwt);
             }
+        } catch (ExpiredJwtException e) {
+            logger.warn("Expired JWT token: {}", e.getMessage());
+            request.setAttribute("expired", e.getMessage());
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            logger.error("Authentication error", e);
+            request.setAttribute("invalid", e.getMessage());
         }
-    
-        filterChain.doFilter(request, response);
+
+        chain.doFilter(request, response);
+    }
+
+    private void authenticateUser(String jwt) {
+        String username = jwtUtils.getEmailFromAccessToken(jwt);
+        UserDetails userDetails = authService.loadUserByUsername(username);
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String parseJwt(HttpServletRequest request) {

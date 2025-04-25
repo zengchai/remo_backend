@@ -3,6 +3,7 @@ package dev.remo.remo.Service.Listing;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -21,12 +22,12 @@ import dev.remo.remo.Models.Request.PredictPriceRequest;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.MotorcycleListing.MotorListingRepository;
 import dev.remo.remo.Service.Ai.AiChatbotService;
+import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelService;
-import dev.remo.remo.Service.User.UserService;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
-import dev.remo.remo.Utils.Exception.NotFoundException;
-import dev.remo.remo.Utils.Exception.OwnershipNotMatchException;
+import dev.remo.remo.Utils.Exception.NotFoundResourceException;
+import dev.remo.remo.Utils.General.ExtInfoUtil;
 import io.micrometer.common.util.StringUtils;
 
 public class MotorcycleListingServiceImpl implements MotorcycleListingService {
@@ -37,7 +38,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     MotorcycleModelService motorcycleModelService;
 
     @Autowired
-    UserService userService;
+    AuthService userService;
 
     @Autowired
     MotorListingRepository motorListingRepository;
@@ -48,32 +49,22 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     @Autowired
     MotorcycleListingMapper motorcycleListingMapper;
 
-    private void verifyOwnership(String listingUserId, String currentUserId) {
-        if (!listingUserId.equals(currentUserId)) {
-            logger.info(currentUserId + " is not the owner of the listing " + listingUserId);
-            throw new OwnershipNotMatchException("You are not the owner of this listing");
-        }
-        logger.info(currentUserId + " is the owner of the listing ");
-    }
-
     @Transactional
-    public void createOrUpdateMotorcycleListing(MultipartFile[] images, CreateOrUpdateListingRequest request,
-            String accessToken) {
+    public void createOrUpdateMotorcycleListing(MultipartFile[] images, CreateOrUpdateListingRequest request) {
         MotorcycleListing motorcycleListing = MotorcycleListingMapper.toDomain(request);
         List<String> imageIds = new ArrayList<>();
         logger.info(motorcycleListing.toString());
-
-        User currentUser = userService.getUserByAccessToken(accessToken);
 
         if (motorcycleListing.getStatus().getPriority() >= StatusEnum.ACTIVE.getPriority()) {
             throw new InvalidStatusException("The listing is already active or sold");
         }
 
         List<ObjectId> removedImageIds = new ArrayList<>();
+        User currentUser;
 
         if (StringUtils.isNotBlank(motorcycleListing.getId())) {
             MotorcycleListing existingListing = getMotorcycleListingById(motorcycleListing.getId());
-            verifyOwnership(existingListing.getUser().getId(), currentUser.getId());
+            currentUser = userService.validateUser(existingListing.getUser().getId());
 
             List<String> oldImageIds = existingListing.getImagesIds();
             List<String> existingImageIds = Optional.ofNullable(request.getExistingImageIds())
@@ -81,7 +72,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
 
             for (String id : existingImageIds) {
                 if (!oldImageIds.contains(id)) {
-                    throw new NotFoundException("Invalid image ID detected: " + id);
+                    throw new NotFoundResourceException("Invalid image ID detected: " + id);
                 }
             }
 
@@ -91,6 +82,8 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
                     .toList();
 
             imageIds.addAll(existingImageIds);
+        } else {
+            currentUser = userService.getCurrentUser();
         }
 
         MotorcycleModel motorcycle = motorcycleModelService.getMotorcycleByBrandAndModel(
@@ -100,6 +93,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         motorcycleListing.setUser(currentUser);
         motorcycleListing.setMotorcycleModel(motorcycle);
         motorcycleListing.setStatus(StatusEnum.PENDING);
+
         MotorcycleListingDO motorcycleListingDO = motorcycleListingMapper
                 .convertToMotorcycleListingDO(motorcycleListing);
 
@@ -120,17 +114,16 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         logger.info("Listing saved: " + motorcycleListingDO.toString());
     }
 
-    public void deleteMotorcycleListingById(String listingId, String accessToken) {
-        User currentUser = userService.getUserByAccessToken(accessToken);
+    public void deleteMotorcycleListingById(String listingId) {
         MotorcycleListing motorcycleListing = getMotorcycleListingById(listingId);
-        verifyOwnership(motorcycleListing.getUser().getId(), currentUser.getId());
+        userService.validateUser(motorcycleListing.getUser().getId());
         motorListingRepository
                 .deleteMotorcycleListingImage(motorcycleListing.getImagesIds().stream().map(ObjectId::new).toList());
         motorListingRepository.deleteMotorcycleListingById(new ObjectId(listingId));
     }
 
-    public void updateMotorcycleListingInspection(MotorcycleListing listing, String inspectionId, String userId) {
-        verifyOwnership(listing.getUser().getId(), userId);
+    public void updateMotorcycleListingInspection(MotorcycleListing listing, String inspectionId) {
+        userService.validateUser(listing.getUser().getId());
         motorListingRepository.updateMotorcycleListingInspection(new ObjectId(listing.getId()), inspectionId);
     }
 
@@ -140,7 +133,23 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
 
     public MotorcycleListing getMotorcycleListingById(String listingId) {
         MotorcycleListingDO motorcycleListingDO = motorListingRepository.getListingById(new ObjectId(listingId))
-                .orElseThrow(() -> new NotFoundException("Listing is not found"));
+                .orElseThrow(() -> new NotFoundResourceException("Listing is not found"));
         return motorcycleListingMapper.convertMotorcycleListingDOToModel(motorcycleListingDO);
+    }
+
+    public void updateMotorcycleListingStatus(String listingId, String status, String remark) {
+        MotorcycleListing motorcycleListing = getMotorcycleListingById(listingId);
+        User currentUser = userService.getCurrentUser();
+        StatusEnum statusEnum = StatusEnum.fromCode(status);
+
+        if (statusEnum.getPriority() >= StatusEnum.ACTIVE.getPriority()) {
+            throw new InvalidStatusException("The listing is already active or sold");
+        }
+
+        Map<String, String> extInfo = ExtInfoUtil.buildExtInfo(currentUser, remark);
+
+        motorListingRepository.updateMotorcycleListingStatus(new ObjectId(motorcycleListing.getId()),
+                statusEnum.getCode(), extInfo);
+
     }
 }

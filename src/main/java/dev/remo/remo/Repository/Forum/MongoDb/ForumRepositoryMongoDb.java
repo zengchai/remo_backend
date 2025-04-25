@@ -6,9 +6,6 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mongodb.client.MongoDatabase;
@@ -55,8 +52,8 @@ public class ForumRepositoryMongoDb implements ForumRepository {
         }
     }
 
-    public void deleteReviewImage(String Id) {
+    public void deleteReviewImage(String id) {
         GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, "review");
-        bucket.delete(new ObjectId(Id));
+        bucket.delete(new ObjectId(id));
     }
 }

@@ -18,7 +18,6 @@ public class Inspection {
     private String date;
     private String time;
     private MotorcycleListing motorcycleListing;
-    private User user;
     private Shop shop;
     private Map<String, Map<VehicleComponentEnum, Integer>> vehicleComponentMap;
     private StatusEnum status;

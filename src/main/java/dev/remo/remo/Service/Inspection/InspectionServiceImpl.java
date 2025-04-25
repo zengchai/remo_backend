@@ -23,14 +23,15 @@ import dev.remo.remo.Models.Request.UpdateInspectionRequest;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Inspection.InspectionRepository;
 import dev.remo.remo.Repository.Shop.ShopRepository;
+import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
 import dev.remo.remo.Service.Listing.MotorcycleListingServiceImpl;
-import dev.remo.remo.Service.User.UserService;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
-import dev.remo.remo.Utils.Exception.NotFoundException;
+import dev.remo.remo.Utils.Exception.NotFoundResourceException;
+import dev.remo.remo.Utils.General.ExtInfoUtil;
 
 public class InspectionServiceImpl implements InspectionService {
 
@@ -42,7 +43,7 @@ public class InspectionServiceImpl implements InspectionService {
     ShopRepository shopRepository;
 
     @Autowired
-    UserService userService;
+    AuthService userService;
 
     @Autowired
     MotorcycleListingService motorcycleListingService;
@@ -50,30 +51,21 @@ public class InspectionServiceImpl implements InspectionService {
     @Autowired
     InspectionMapper inspectionMapper;
 
-    private Map<String, String> buildExtInfo(User currentUser, String remark) {
-        Map<String, String> extInfo = new HashMap<>();
-        extInfo.put("updatedBy", currentUser.getEmail());
-        extInfo.put("updatedAt", LocalDateTime.now().toString());
-        extInfo.put("remark", remark);
-        return extInfo;
-    }
-
     public ShopDO getShopById(String shopId) {
         return shopRepository.getShopById(new ObjectId(shopId)).orElseThrow(() -> {
-            return new NotFoundException("Shop not found for ID: " + shopId);
+            return new NotFoundResourceException("Shop not found for ID: " + shopId);
         });
     }
 
     public Inspection getInspectionById(String inspectionId) {
         return inspectionMapper
                 .convertInspectionDOToInspection(inspectionRepository.getInspectionById(new ObjectId(inspectionId))
-                        .orElseThrow(() -> new NotFoundException("Inspection not found for ID: " + inspectionId)));
+                        .orElseThrow(() -> new NotFoundResourceException("Inspection not found for ID: " + inspectionId)));
     }
 
     @Transactional
-    public void createInspection(CreateInspectionRequest request, String accessToken) {
+    public void createInspection(CreateInspectionRequest request) {
         logger.info("Creating inspection: " + request.toString());
-        User currentUser = userService.getUserByAccessToken(accessToken);
         Inspection inspection = inspectionMapper.toDomain(request);
 
         ShopDO shop = getShopById(request.getShopId());
@@ -86,7 +78,6 @@ public class InspectionServiceImpl implements InspectionService {
         }
 
         inspection.setShop(inspectionMapper.convertShopDOToShop(shop));
-        inspection.setUser(currentUser);
         inspection.setMotorcycleListing(motorcycleListing);
         inspection.setStatus(StatusEnum.PENDING);
 
@@ -95,36 +86,35 @@ public class InspectionServiceImpl implements InspectionService {
                 .orElseThrow(() -> new InternalServerErrorException("Failed to create inspection"));
         logger.info("Created inspection: " + inspectionDO.getId());
 
-        motorcycleListingService.updateMotorcycleListingInspection(motorcycleListing, inspectionDO.getId().toString(),
-                currentUser.getId());
+        motorcycleListingService.updateMotorcycleListingInspection(motorcycleListing, inspectionDO.getId().toString());
         logger.info("Updated motorcycle listing: " + motorcycleListing.getId());
     }
 
-    public void updateInspectionStatus(String inspectionId, String status, String remark, String accessToken) {
+    public void updateInspectionStatus(String inspectionId, String status, String remark) {
         logger.info("Updating inspection status: " + inspectionId + " to " + status);
         Inspection inspection = getInspectionById(inspectionId);
-        User currentUser = userService.getUserByAccessToken(accessToken);
+        User currentUser = userService.getCurrentUser();
 
         StatusEnum statusEnum = StatusEnum.fromCode(status);
 
-        Map<String, String> extInfo = buildExtInfo(currentUser, remark);
+        Map<String, String> extInfo = ExtInfoUtil.buildExtInfo(currentUser, remark);
 
         inspectionRepository.updateInspectionStatus(new ObjectId(inspection.getId()),
                 statusEnum.getCode(), extInfo);
         logger.info("Updated inspection status: " + inspection.getId() + " to " + statusEnum.getCode());
     }
 
-    public void updateInspectionReport(String id, UpdateInspectionRequest updateInspectionRequest, String accessToken) {
+    public void updateInspectionReport(String id, UpdateInspectionRequest updateInspectionRequest) {
         logger.info("Updating inspection report: " + id + " to " + updateInspectionRequest.getStatus());
         Inspection inspection = getInspectionById(id);
-        User currentUser = userService.getUserByAccessToken(accessToken);
+        User currentUser = userService.getCurrentUser();
 
         if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()
                 && !updateInspectionRequest.getRetry()) {
             throw new InvalidStatusException("Inspection already completed: " + id);
         }
 
-        Map<String, String> extInfo = buildExtInfo(currentUser, updateInspectionRequest.getRemark());
+        Map<String, String> extInfo = ExtInfoUtil.buildExtInfo(currentUser, updateInspectionRequest.getRemark());
         VehicleComponentEnum.validateFlatMap(updateInspectionRequest.getComponentScores());
 
         Map<String, Map<String, Integer>> componentScores = VehicleComponentEnum
@@ -136,9 +126,8 @@ public class InspectionServiceImpl implements InspectionService {
         logger.info("Updated inspection report: " + inspection.getId() + " to " + updateInspectionRequest.getStatus());
     }
 
-    public void createShop(MultipartFile image, CreateShopRequest createShopRequest, String accessToken) {
+    public void createShop(MultipartFile image, CreateShopRequest createShopRequest) {
         logger.info("Creating shop: " + createShopRequest.toString());
-        User currentUser = userService.getUserByAccessToken(accessToken);
 
         Shop shop = inspectionMapper.convertRequestToDomain(createShopRequest);
         String shopId = shopRepository.uploadFiles(image);
@@ -146,6 +135,21 @@ public class InspectionServiceImpl implements InspectionService {
 
         shopRepository.addShop(inspectionMapper.convertShopToShopDO(shop));
         logger.info("Created shop: " + shop.getName());
+    }
+
+    public void deleteInspection(String id) {
+        logger.info("Deleting inspection: " + id);
+        Inspection inspection = getInspectionById(id);
+        MotorcycleListing motorcycleListing = motorcycleListingService
+                .getMotorcycleListingById(inspection.getMotorcycleListing().getId());
+        userService.validateUser(motorcycleListing.getUser().getId());
+
+        if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()) {
+            throw new InvalidStatusException("Inspection already completed: " + id);
+        }
+
+        inspectionRepository.deleteInspection(new ObjectId(inspection.getId()));
+        logger.info("Deleted inspection: " + inspection.getId());
     }
 
 }

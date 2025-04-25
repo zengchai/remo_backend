@@ -21,6 +21,7 @@ public class User implements UserDetails {
     private String nric;
     private String phoneNum;
     private String dob;
+    private String imageId;
     private List<String> role;
 
     public User(String id,String name, String email, String password, String nric, String phoneNum, String dob,

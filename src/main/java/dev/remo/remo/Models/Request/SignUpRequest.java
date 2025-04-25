@@ -19,10 +19,7 @@ public class SignUpRequest {
     @Size(min=8)
     private String password;
 
+    @NotBlank
     private List<String> roles;
 
-
-    public User convertToUser(){
-        return new User("","",this.email,this.password,"","","",this.roles);
-    }
 }

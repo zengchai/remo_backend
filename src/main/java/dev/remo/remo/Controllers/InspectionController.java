@@ -3,6 +3,7 @@ package dev.remo.remo.Controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,8 +35,7 @@ public class InspectionController {
                         @Valid @RequestBody CreateInspectionRequest createInspectionRequest,
                         HttpServletRequest http) {
 
-                inspectionService.createInspection(
-                                createInspectionRequest, http.getHeader("Authorization").substring(7));
+                inspectionService.createInspection(createInspectionRequest);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Created successfully")
@@ -50,8 +50,7 @@ public class InspectionController {
                         @RequestPart(value = "file", required = true) MultipartFile newImage,
                         HttpServletRequest http) {
 
-                inspectionService.createShop(newImage,
-                                createShopRequest, http.getHeader("Authorization").substring(7));
+                inspectionService.createShop(newImage, createShopRequest);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Created successfully")
@@ -67,8 +66,7 @@ public class InspectionController {
                         @Valid @RequestPart(required = true) String remark,
                         HttpServletRequest http) {
 
-                inspectionService.updateInspectionStatus(
-                                id, status, remark, http.getHeader("Authorization").substring(7));
+                inspectionService.updateInspectionStatus(id, status, remark);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Updated successfully")
@@ -82,8 +80,18 @@ public class InspectionController {
                         @Valid @RequestBody UpdateInspectionRequest updateInspectionRequest,
                         HttpServletRequest http) {
 
-                inspectionService.updateInspectionReport(
-                                id, updateInspectionRequest, http.getHeader("Authorization").substring(7));
+                inspectionService.updateInspectionReport(id, updateInspectionRequest);
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("").message("Updated successfully")
+                                                .build());
+        }
+
+        @DeleteMapping("/delete/{id}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> updateInspectionReport(@PathVariable String id, HttpServletRequest http) {
+
+                inspectionService.deleteInspection(id);
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Updated successfully")

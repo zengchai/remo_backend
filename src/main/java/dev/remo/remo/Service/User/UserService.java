@@ -1,18 +1,11 @@
 package dev.remo.remo.Service.User;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
-import dev.remo.remo.Models.Users.User;
+import dev.remo.remo.Models.Request.UpdateUserRequest;
 
-public interface UserService extends UserDetailsService {
-
-    Boolean checkByName(String name);
-    Boolean checkByEmail(String email);
-    Boolean registerUser(User user);
-    void updateUser(String accessToken,User user);
-    Boolean deleteUser(String accessToken);
-    User getUserByAccessToken(String accessToken);
-    UserDetails loadUserByUsername(String email);
+public interface UserService {
+    void updateUser(String id,MultipartFile image,UpdateUserRequest userRequest);
+    void deleteUser(String id);
 
 }

@@ -14,10 +14,9 @@ import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Forum.ForumRepository;
+import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelService;
-import dev.remo.remo.Service.User.UserService;
-import dev.remo.remo.Utils.Exception.NotFoundException;
-import dev.remo.remo.Utils.Exception.OwnershipNotMatchException;
+import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import io.micrometer.common.util.StringUtils;
 
 public class ForumServiceImpl implements ForumService {
@@ -31,37 +30,28 @@ public class ForumServiceImpl implements ForumService {
     MotorcycleModelService motorcycleModelService;
 
     @Autowired
-    UserService userService;
+    AuthService userService;
 
     @Autowired
     ForumMapper forumMapper;
 
-    private void validateReviewAndOwnership(ReviewDO existingReview, String currentUserId) {
-        if (!existingReview.getUserId().equals(currentUserId)) {
-            logger.warn("User {} attempted to modify review {} owned by {}",
-                    currentUserId, existingReview.getId(), existingReview.getUserId());
-            throw new OwnershipNotMatchException("You don't own this review");
-        }
-    }
-
     public ReviewDO getReviewbyId(String reviewId) {
         return forumRepository.getReviewById(new ObjectId(reviewId)).orElseThrow(() -> {
-            return new NotFoundException("Review not found");
+            return new NotFoundResourceException("Review not found");
         });
     }
 
     @Transactional
-    public void createOrUpdateReview(MultipartFile image, CreateOrUpdateReviewRequest createOrUpdateReviewRequest,
-            String accessToken) {
+    public void createOrUpdateReview(MultipartFile image, CreateOrUpdateReviewRequest createOrUpdateReviewRequest) {
         logger.info("Creating or updating review: " + createOrUpdateReviewRequest.toString());
         Review review = ForumMapper.toDomain(createOrUpdateReviewRequest);
 
-        User currentUser = userService.getUserByAccessToken(accessToken);
+        User currentUser = userService.getCurrentUser();
 
         // Update operation if ID is present
         if (StringUtils.isNotBlank(review.getId())) {
             ReviewDO existingReview = getReviewbyId(review.getId());
-            validateReviewAndOwnership(existingReview, currentUser.getId());
+            userService.validateUser(review.getId());
 
             String existingImageId = createOrUpdateReviewRequest.getExistingImageIds();
             String oldImageId = existingReview.getImageId();
@@ -69,11 +59,11 @@ public class ForumServiceImpl implements ForumService {
             if (StringUtils.isBlank(existingImageId)) {
                 forumRepository.deleteReviewImage(oldImageId);
             } else if (!existingImageId.equals(oldImageId)) {
-                throw new NotFoundException("Invalid image ID detected: " + existingImageId);
+                throw new NotFoundResourceException("Invalid image ID detected: " + existingImageId);
             } else {
                 review.setImageId(existingImageId);
             }
-        }
+        } 
 
         MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleByBrandAndModel(
                 review.getMotorcycleModel().getBrand(),
@@ -94,12 +84,10 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional
-    public void deleteReviewById(String reviewId, String accessToken) {
+    public void deleteReviewById(String reviewId) {
         logger.info("Deleting review by ID: " + reviewId);
-        User currentUser = userService.getUserByAccessToken(accessToken);
         ReviewDO existingReview = getReviewbyId(reviewId);
-
-        validateReviewAndOwnership(existingReview, currentUser.getId());
+        userService.validateUser(existingReview.getUserId());
 
         forumRepository.deleteReviewImage(existingReview.getImageId());
         logger.info("Deleted reviewImage: " + existingReview.getImageId());

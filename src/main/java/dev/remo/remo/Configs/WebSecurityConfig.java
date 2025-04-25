@@ -21,7 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import dev.remo.remo.Service.User.UserService;
+import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Utils.JWTAuth.AuthEntryPointJwt;
 import dev.remo.remo.Utils.JWTAuth.AuthTokenFilter;
 
@@ -32,7 +32,7 @@ public class WebSecurityConfig {
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class); // Logger for logging errors
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
@@ -42,7 +42,7 @@ public class WebSecurityConfig {
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter(); 
+        return new AuthTokenFilter();
     }
 
     @Bean
@@ -50,19 +50,19 @@ public class WebSecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder = http
                 .getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
-                .userDetailsService(userService)
+                .userDetailsService(authService)
                 .passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(); // Create a new authentication
-                                                                                  // provider
-        authProvider.setUserDetailsService(userService); // Set the user details service
-        authProvider.setPasswordEncoder(passwordEncoder); // Set the password encoder
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+                                                                                 
+        authProvider.setUserDetailsService(authService); 
+        authProvider.setPasswordEncoder(passwordEncoder);
 
-        return authProvider; // Return the configured authentication provider
+        return authProvider;
     }
 
     @Bean
