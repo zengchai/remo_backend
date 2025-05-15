@@ -20,7 +20,7 @@ public class MotorcycleListing extends Listing {
 
     private MotorcycleModel motorcycleModel;
     private Inspection inspection;
-    private String date;
+    private String createdAt;
     private StatusEnum status;
     private String manufacturedYear;
     private String mileage;
@@ -29,6 +29,7 @@ public class MotorcycleListing extends Listing {
     private String phoneNumber;
     private String state;
     private String area;
+    private String plateNumber;
     private List<String> imagesIds;
     private Map<String, String> extInfo;
 

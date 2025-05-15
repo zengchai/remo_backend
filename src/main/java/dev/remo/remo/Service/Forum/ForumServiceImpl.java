@@ -4,6 +4,10 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,10 +16,14 @@ import dev.remo.remo.Models.Forum.Review;
 import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
+import dev.remo.remo.Models.Response.ReviewCategoryUserViewResponse;
+import dev.remo.remo.Models.Response.ReviewCategoryViewResponse;
+import dev.remo.remo.Models.Response.ReviewUserView;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Forum.ForumRepository;
 import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelService;
+import dev.remo.remo.Service.User.UserService;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import io.micrometer.common.util.StringUtils;
 
@@ -30,7 +38,10 @@ public class ForumServiceImpl implements ForumService {
     MotorcycleModelService motorcycleModelService;
 
     @Autowired
-    AuthService userService;
+    AuthService authService;
+
+    @Autowired
+    UserService userService;
 
     @Autowired
     ForumMapper forumMapper;
@@ -46,24 +57,24 @@ public class ForumServiceImpl implements ForumService {
         logger.info("Creating or updating review: " + createOrUpdateReviewRequest.toString());
         Review review = ForumMapper.toDomain(createOrUpdateReviewRequest);
 
-        User currentUser = userService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
 
         // Update operation if ID is present
         if (StringUtils.isNotBlank(review.getId())) {
             ReviewDO existingReview = getReviewbyId(review.getId());
-            userService.validateUser(review.getId());
+            authService.validateUser(review.getId());
 
             String existingImageId = createOrUpdateReviewRequest.getExistingImageIds();
             String oldImageId = existingReview.getImageId();
 
             if (StringUtils.isBlank(existingImageId)) {
-                forumRepository.deleteReviewImage(oldImageId);
+                forumRepository.deleteReviewImage(new ObjectId(oldImageId));
             } else if (!existingImageId.equals(oldImageId)) {
                 throw new NotFoundResourceException("Invalid image ID detected: " + existingImageId);
             } else {
                 review.setImageId(existingImageId);
             }
-        } 
+        }
 
         MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleByBrandAndModel(
                 review.getMotorcycleModel().getBrand(),
@@ -87,14 +98,45 @@ public class ForumServiceImpl implements ForumService {
     public void deleteReviewById(String reviewId) {
         logger.info("Deleting review by ID: " + reviewId);
         ReviewDO existingReview = getReviewbyId(reviewId);
-        userService.validateUser(existingReview.getUserId());
+        authService.validateUser(existingReview.getUserId());
 
-        forumRepository.deleteReviewImage(existingReview.getImageId());
+        forumRepository.deleteReviewImage(new ObjectId(existingReview.getImageId()));
         logger.info("Deleted reviewImage: " + existingReview.getImageId());
         forumRepository.deleteReviewById(new ObjectId(reviewId));
         logger.info("Deleted review: " + reviewId);
         motorcycleModelService.removeReviewIdListById(existingReview.getMotorcycleModelId(), reviewId);
         logger.info(
                 "Review ID removed from motorcycle model (" + existingReview.getMotorcycleModelId() + "): " + reviewId);
+    }
+
+    public ReviewUserView getReviewById(String reviewId) {
+        ReviewDO reviewDO = getReviewbyId(reviewId);
+        User user = userService.getUserById(reviewDO.getUserId());
+        return forumMapper.convertReviewDOToUserDTO(reviewDO, user);
+    }
+
+    public Resource getForumImageById(String id){
+        return motorcycleModelService.getMotorcycleModelImageById(id);
+    }
+    public Resource getReviewImageById(String id) {
+        return forumRepository.getReviewImageById(new ObjectId(id))
+                .orElseThrow(() -> new NotFoundResourceException("Image not found"));
+    }
+
+    public ReviewCategoryUserViewResponse getAllReviewsByMotorcycleModelId(String motorcycleModelId, int page,
+            int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ReviewUserView> reviewUserViews = forumRepository
+                .getReviewsByMotorcycleModelIdWithPaging(new ObjectId(motorcycleModelId), pageable).map(
+                        reviewDO -> {
+                            User user = userService.getUserById(reviewDO.getUserId());
+                            return forumMapper.convertReviewDOToUserDTO(reviewDO, user);
+                        });
+        MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleModelById(motorcycleModelId);
+        return forumMapper.convertToReviewCategoryUserViewResponse(reviewUserViews, motorcycleModel);
+    }
+
+    public ReviewCategoryViewResponse getAllReview() {
+        return forumMapper.convertToReviewCategoryViewResponse(motorcycleModelService.getMotorcycleList());
     }
 }

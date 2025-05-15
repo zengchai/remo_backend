@@ -1,5 +1,7 @@
 package dev.remo.remo.Mappers;
 
+import java.util.ArrayList;
+
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
@@ -22,24 +24,6 @@ public class UserMapper {
                 .build();
     }
 
-    public UserDO convertToUserDO(User user) {
-        UserDO.UserDOBuilder userDOBuilder = UserDO.builder();
-
-        if (!StringUtils.isBlank(user.getNric())) {
-            userDOBuilder.nric(user.getNric());
-            userDOBuilder.phoneNum(user.getPhoneNum());
-            userDOBuilder.imageId(user.getImageId());
-            userDOBuilder.dob(user.getDob());
-        }
-
-        return userDOBuilder
-                .password(user.getPassword())
-                .name(user.getName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .build();
-    }
-
     public UserDO convertToUserDOForUpdate(User user) {
         return UserDO.builder()
                 .id(new ObjectId(user.getId()))
@@ -51,20 +35,50 @@ public class UserMapper {
                 .build();
     }
 
+    public UserDO convertToUserDO(User user) {
+        UserDO.UserDOBuilder userDOBuilder = UserDO.builder();
+
+        if (StringUtils.isNotBlank(user.getName())) {
+            userDOBuilder.nric(user.getNric());
+            userDOBuilder.phoneNum(user.getPhoneNum());
+            userDOBuilder.imageId(user.getImageId());
+            userDOBuilder.dob(user.getDob());
+        }
+
+        if (user.getFavouriteListingIds() == null) {
+            userDOBuilder.favouriteListingIds(new ArrayList<>());
+        } else {
+            userDOBuilder.favouriteListingIds(user.getFavouriteListingIds());
+        }
+
+        return userDOBuilder
+                .password(user.getPassword())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
     public User convertToUser(UserDO userDO) {
         User.UserBuilder<?, ?> userBuilder = User.builder();
 
-        if (!StringUtils.isBlank(userDO.getNric())) {
+        if (StringUtils.isNotBlank(userDO.getName())) {
+            userBuilder.name(userDO.getName());
             userBuilder.nric(userDO.getNric());
             userBuilder.phoneNum(userDO.getPhoneNum());
             userBuilder.imageId(userDO.getImageId());
             userBuilder.dob(userDO.getDob());
         }
 
+        if (StringUtils.isNotBlank(userDO.getResetToken())) {
+            userBuilder.resetToken(userDO.getResetToken())
+                    .resetTokenExpiry(userDO.getResetTokenExpiry());
+        }
+
+        
         return userBuilder.id(userDO.getId().toString())
                 .password(userDO.getPassword())
-                .name(userDO.getName())
                 .email(userDO.getEmail())
+                .favouriteListingIds(userDO.getFavouriteListingIds())
                 .role(userDO.getRole())
                 .build();
     }
@@ -84,7 +98,7 @@ public class UserMapper {
                 .roles(user.getRole())
                 .success(true)
                 .error("")
-                .message("")
+                .message("User signed in successfully")
                 .build();
     }
 

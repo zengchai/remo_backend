@@ -9,19 +9,27 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.GridFSDownloadStream;
 
+import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Repository.MotorcycleListing.MotorListingRepository;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
+import jakarta.annotation.PostConstruct;
 
 public class MotorListingRepositoryMongoDb implements MotorListingRepository {
 
@@ -34,8 +42,14 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     @Autowired
     MongoTemplate mongoTemplate;
 
+    private GridFSBucket gridFSBucket;
+
+    @PostConstruct
+    public void init() {
+        this.gridFSBucket = GridFSBuckets.create(mongoDatabase, "motorcycle_listing");
+    }
+
     public List<String> uploadFiles(MultipartFile[] files) {
-        GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, "motorcycle_listing");
         List<String> storedFileIds = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -43,7 +57,7 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
                 InputStream inputStream = file.getInputStream();
                 String fileName = file.getOriginalFilename();
 
-                ObjectId fileId = bucket.uploadFromStream(fileName, inputStream);
+                ObjectId fileId = gridFSBucket.uploadFromStream(fileName, inputStream);
                 storedFileIds.add(fileId.toString());
             } catch (IOException e) {
                 throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());
@@ -54,17 +68,16 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     }
 
     public void deleteMotorcycleListingImage(List<ObjectId> imageIds) {
-        GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, "motorcycle_listing");
-
         for (ObjectId imageId : imageIds) {
-            bucket.delete(imageId);
+            gridFSBucket.delete(imageId);
         }
     }
 
     public Optional<MotorcycleListingDO> getListingById(ObjectId id) {
         return motorListingMongoDb.findById(id);
     }
-    public void updateMotorcycleListingInspection(ObjectId id, String inspectionId){
+
+    public void updateMotorcycleListingInspection(ObjectId id, String inspectionId) {
         Query query = new Query(Criteria.where("_id").is(id));
         mongoTemplate.updateFirst(query, new Update().set("inspectionId", inspectionId), MotorcycleListingDO.class);
     }
@@ -77,11 +90,27 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         motorListingMongoDb.deleteById(listingId);
     }
 
-    public void updateMotorcycleListingStatus(ObjectId objectId, String status, Map<String, String> extInfo){
+    public void updateMotorcycleListingStatus(ObjectId objectId, String status, Map<String, String> extInfo) {
         Query query = new Query(Criteria.where("_id").is(objectId));
         Update update = new Update()
                 .set("status", status)
                 .set("extInfo", extInfo);
         mongoTemplate.updateFirst(query, update, MotorcycleListingDO.class);
+    }
+
+    public Page<MotorcycleListingDO> getAllListingsByPage(Pageable pageable) {
+        return motorListingMongoDb.findAll(pageable);
+    }
+
+    public Optional<Resource> getMotorcycleListingImageById(String id) {
+        GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(new ObjectId(id));
+        return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
+    }
+
+    public Page<MotorcycleListingDO> getMotorcycleListingByUserId(String id,Pageable pageable) {
+        Query query = new Query(Criteria.where("userId").is(id));
+        long count = mongoTemplate.count(query, ReviewDO.class);
+        List<MotorcycleListingDO> reviews = mongoTemplate.find(query.with(pageable), MotorcycleListingDO.class);
+        return new PageImpl<>(reviews, pageable, count);
     }
 }

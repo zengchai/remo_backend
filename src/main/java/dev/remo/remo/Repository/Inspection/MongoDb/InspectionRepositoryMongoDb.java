@@ -1,5 +1,6 @@
 package dev.remo.remo.Repository.Inspection.MongoDb;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -52,4 +53,7 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         inspectionMongoDb.deleteById(inspectionId);
     }
 
+    public Optional<List<InspectionDO>> getInspectionStatusList(List<ObjectId> listingId) {
+        return Optional.ofNullable(inspectionMongoDb.findAllById(listingId));
+    }
 }

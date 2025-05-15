@@ -28,9 +28,9 @@ public class CreateOrUpdateListingRequest {
     @NotBlank
     private String area;
     @NotBlank
-    private String date;
-    @NotBlank
     private String price;
+    @NotBlank
+    private String plateNumber;
     
     private List<String> existingImageIds;
 

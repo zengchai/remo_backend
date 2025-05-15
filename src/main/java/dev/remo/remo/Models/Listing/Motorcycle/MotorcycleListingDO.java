@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,24 +15,39 @@ import lombok.Data;
 @Data
 @Builder
 public class MotorcycleListingDO {
-       
+
     @Id
     private ObjectId id;
+    @NotBlank
     private String motorcycleId;
-    private String inspectionId;
+    @NotBlank
     private String userId;
+    @NotBlank
     private String manufacturedYear;
+    @NotBlank
     private String mileage;
+    @NotBlank
     private String cubicCapacity;
+    @NotBlank
     private String transmission;
+    @NotBlank
     private String phoneNumber;
+    @NotBlank
     private String price;
-    private String date;
+    @NotBlank
+    private String createdAt;
+    @NotBlank
     private String state;
+    @NotBlank
     private String area;
+    @NotBlank
     private String status;
+    @NotBlank
+    private String plateNumber;
+    @NotBlank
     private List<String> imagesIds;
+    
+    private String inspectionId;
     private Map<String, String> extInfo;
-
 
 }

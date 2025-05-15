@@ -4,7 +4,6 @@ import java.util.Map;
 
 import dev.remo.remo.Models.Inspection.Shop.Shop;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
-import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
 import lombok.Builder;

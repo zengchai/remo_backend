@@ -1,12 +1,5 @@
 package dev.remo.remo.Controllers;
 
-import dev.remo.remo.Models.Request.SignInRequest;
-import dev.remo.remo.Models.Request.SignUpRequest;
-import dev.remo.remo.Models.Response.GeneralResponse;
-import dev.remo.remo.Models.Response.JwtResponse;
-import dev.remo.remo.Service.Auth.AuthService;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,7 +10,16 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+
+import dev.remo.remo.Models.Request.SignInRequest;
+import dev.remo.remo.Models.Request.SignUpRequest;
+import dev.remo.remo.Models.Response.GeneralResponse;
+import dev.remo.remo.Models.Response.JwtResponse;
+import dev.remo.remo.Service.Auth.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,8 +36,10 @@ public class AuthController {
 
         authService.registerUser(request);
 
-        return ResponseEntity.ok(GeneralResponse.builder()
+        return ResponseEntity.ok(JwtResponse.builder()
                 .success(true)
+                .error("")
+                .token("")
                 .message("Register Successful")
                 .build());
     }
@@ -48,7 +52,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        
+
         JwtResponse jwtResponse = authService.signIn(request, response, authentication);
 
         return ResponseEntity.ok(jwtResponse);
@@ -74,4 +78,36 @@ public class AuthController {
                 .message("Logged out successfully")
                 .build());
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestPart String email) {
+
+        authService.initiateResetPassword(email);
+
+        return ResponseEntity.ok(GeneralResponse.builder()
+                .success(true)
+                .message("Password reset link sent to your email")
+                .build());
+    }
+
+    @PostMapping("/verify-reset-token")
+    public ResponseEntity<?> verifyResetToken(@RequestPart String token) {
+        
+        authService.verifyResetToken(token);
+
+        return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                .message("Token is valid")
+                .build());
+
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestPart String token, @RequestPart String password) {
+        authService.resetPassword(token, password);
+
+        return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                .message("Password reset successfully").build());
+
+    }
+
 }

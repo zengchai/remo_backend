@@ -2,6 +2,8 @@ package dev.remo.remo.Repository.User.MongoDb;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -70,5 +72,43 @@ public class UserRespositoryMongoDb implements UserRepository {
         } catch (IOException e) {
             throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());
         }
+    }
+
+    public void favourite(ObjectId userId, List<String> motorcycleListingIds) {
+        Query query = new Query(Criteria.where("_id").is(userId));
+        Update update = new Update().set("favouriteListingIds", motorcycleListingIds);
+        mongoTemplate.updateFirst(query, update, UserDO.class);
+    }
+
+    public void updateResetToken(ObjectId userId, String resetToken, LocalDateTime resetTokenExpiry) {
+        Query query = new Query(Criteria.where("_id").is(userId));
+        Update update = new Update()
+                .set("resetToken", resetToken)
+                .set("resetTokenExpiry", resetTokenExpiry);
+        mongoTemplate.updateFirst(query, update, UserDO.class);
+    }
+
+    public void deleteResetToken(ObjectId userId) {
+        Query query = new Query(Criteria.where("_id").is(userId));
+        Update update = new Update()
+                .unset("resetToken")
+                .unset("resetTokenExpiry");
+        mongoTemplate.updateFirst(query, update, UserDO.class);
+    }
+
+    public void updatePassword(ObjectId userId, String password){
+        Query query = new Query(Criteria.where("_id").is(userId));
+        Update update = new Update()
+                .set("password", password);
+        mongoTemplate.updateFirst(query, update, UserDO.class);
+    }
+
+    public Optional<UserDO> findByToken(String resetToken) {
+        Query query = new Query(Criteria.where("resetToken").is(resetToken));
+        return Optional.ofNullable(mongoTemplate.findOne(query, UserDO.class));
+    }
+
+    public Optional<UserDO> findById(ObjectId id) {
+        return userMongoDb.findById(id);
     }
 }

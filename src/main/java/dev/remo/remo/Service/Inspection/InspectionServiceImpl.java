@@ -1,8 +1,8 @@
 package dev.remo.remo.Service.Inspection;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -20,12 +20,12 @@ import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
 import dev.remo.remo.Models.Request.CreateShopRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
+import dev.remo.remo.Models.Response.InspectionDetailUserView;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Inspection.InspectionRepository;
 import dev.remo.remo.Repository.Shop.ShopRepository;
 import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
-import dev.remo.remo.Service.Listing.MotorcycleListingServiceImpl;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
@@ -36,6 +36,7 @@ import dev.remo.remo.Utils.General.ExtInfoUtil;
 public class InspectionServiceImpl implements InspectionService {
 
     private static final Logger logger = LoggerFactory.getLogger(InspectionServiceImpl.class);
+    
     @Autowired
     InspectionRepository inspectionRepository;
 
@@ -43,7 +44,7 @@ public class InspectionServiceImpl implements InspectionService {
     ShopRepository shopRepository;
 
     @Autowired
-    AuthService userService;
+    AuthService authService;
 
     @Autowired
     MotorcycleListingService motorcycleListingService;
@@ -60,7 +61,8 @@ public class InspectionServiceImpl implements InspectionService {
     public Inspection getInspectionById(String inspectionId) {
         return inspectionMapper
                 .convertInspectionDOToInspection(inspectionRepository.getInspectionById(new ObjectId(inspectionId))
-                        .orElseThrow(() -> new NotFoundResourceException("Inspection not found for ID: " + inspectionId)));
+                        .orElseThrow(
+                                () -> new NotFoundResourceException("Inspection not found for ID: " + inspectionId)));
     }
 
     @Transactional
@@ -93,7 +95,7 @@ public class InspectionServiceImpl implements InspectionService {
     public void updateInspectionStatus(String inspectionId, String status, String remark) {
         logger.info("Updating inspection status: " + inspectionId + " to " + status);
         Inspection inspection = getInspectionById(inspectionId);
-        User currentUser = userService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
 
         StatusEnum statusEnum = StatusEnum.fromCode(status);
 
@@ -107,7 +109,7 @@ public class InspectionServiceImpl implements InspectionService {
     public void updateInspectionReport(String id, UpdateInspectionRequest updateInspectionRequest) {
         logger.info("Updating inspection report: " + id + " to " + updateInspectionRequest.getStatus());
         Inspection inspection = getInspectionById(id);
-        User currentUser = userService.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
 
         if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()
                 && !updateInspectionRequest.getRetry()) {
@@ -142,7 +144,7 @@ public class InspectionServiceImpl implements InspectionService {
         Inspection inspection = getInspectionById(id);
         MotorcycleListing motorcycleListing = motorcycleListingService
                 .getMotorcycleListingById(inspection.getMotorcycleListing().getId());
-        userService.validateUser(motorcycleListing.getUser().getId());
+        authService.validateUser(motorcycleListing.getUser().getId());
 
         if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()) {
             throw new InvalidStatusException("Inspection already completed: " + id);
@@ -152,4 +154,20 @@ public class InspectionServiceImpl implements InspectionService {
         logger.info("Deleted inspection: " + inspection.getId());
     }
 
+    public Map<String, String> getInspectionStatusByIds(List<String> id) {
+        logger.info("Getting inspection status for IDs: " + id);
+        List<ObjectId> objectIds = id.stream().map(ObjectId::new).toList();
+        Map<ObjectId, String> map = inspectionRepository.getInspectionStatusList(objectIds).orElseThrow(() -> {
+            return new NotFoundResourceException("Inspection not found for IDs: " + id);
+        }).stream()
+                .collect(Collectors.toMap(InspectionDO::getId, InspectionDO::getStatus));
+        return map.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
+    }
+
+    public InspectionDetailUserView getInspectionDetailUserViewById(String id) {
+        logger.info("Getting inspection detail view for ID: " + id);
+        Inspection inspection = getInspectionById(id);
+        return inspectionMapper.convertInspectionToDetailView(inspection);
+    }
 }

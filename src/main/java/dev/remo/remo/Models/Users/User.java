@@ -1,4 +1,5 @@
 package dev.remo.remo.Models.Users;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +23,11 @@ public class User implements UserDetails {
     private String phoneNum;
     private String dob;
     private String imageId;
+    private List<String> favouriteListingIds;
+    private List<String> motorcycleListingIds;
     private List<String> role;
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

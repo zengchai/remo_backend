@@ -1,13 +1,22 @@
 package dev.remo.remo.Service.Auth;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,9 +48,12 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     JwtUtils jwtUtils;
 
-    public void registerUser(SignUpRequest user) {
-        logger.info("Registering user: {}", user.getEmail());
-        User newUser = userMapper.convertSignUpRequestToUser(user);
+    @Autowired
+    JavaMailSender mailSender;
+
+    public void registerUser(SignUpRequest request) {
+        logger.info("Registering user: {}", request.getEmail());
+        User newUser = userMapper.convertSignUpRequestToUser(request);
         UserDO userDO = userRepository.findByEmail(newUser.getEmail()).orElse(null);
 
         if (userDO != null) {
@@ -50,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
 
         newUser.setPassword(encoder.encode(newUser.getPassword()));
         userRepository.saveUser(userMapper.convertToUserDO(newUser));
-        logger.info("User registered successfully: {}", user.getEmail());
+        logger.info("User registered successfully: {}", request.getEmail());
     }
 
     public JwtResponse signIn(SignInRequest signInRequest, HttpServletResponse response,
@@ -104,11 +116,50 @@ public class AuthServiceImpl implements AuthService {
 
     public User validateUser(String userId) {
         User user = getCurrentUser();
-        
-        if (!user.getId().equals(userId) && user.getRole().stream().noneMatch(role -> role.equals("ROLE_ADMIN"))) {
+
+        if (!user.getId().equals(userId)
+                && user.getAuthorities().stream().noneMatch(role -> role.getAuthority().equals("ROLE_ADMIN"))) {
             throw new OwnershipNotMatchException("You don't own this resource");
         }
         return user;
     }
 
+    public void initiateResetPassword(String email) {
+        logger.info("Initiating password reset for user: {}", email);
+        User user = userMapper.convertToUser(userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundResourceException("User not found with email: " + email)));
+
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
+
+        userRepository.updateResetToken(new ObjectId(user.getId()), token, expiry);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Password Reset Request");
+        message.setText("Use this token to reset your password: " + token);
+
+        mailSender.send(message);
+    }
+
+    private User getUserByToken(String token) {
+        UserDO userDO = userRepository.findByToken(token)
+                .orElseThrow(() -> new NotFoundResourceException("Invalid token"));
+
+        if (userDO.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        return userMapper.convertToUser(userDO);
+    }
+
+    public void verifyResetToken(String token) {
+        getUserByToken(token);
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = getUserByToken(token);
+        userRepository.updatePassword(new ObjectId(user.getId()), encoder.encode(newPassword));
+        userRepository.deleteResetToken(new ObjectId(user.getId()));
+    }
 }

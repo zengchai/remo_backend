@@ -1,5 +1,7 @@
 package dev.remo.remo.Repository.User;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -15,4 +17,10 @@ public interface UserRepository {
     void updateUser(UserDO user);
     void deleteImage(ObjectId id);
     String uploadImage(MultipartFile image);
+    void favourite(ObjectId userId, List<String> motorcycleListingIds);
+    Optional<UserDO> findByToken(String resetToken);
+    Optional<UserDO> findById(ObjectId id);
+    void updateResetToken(ObjectId userId, String resetToken, LocalDateTime resetTokenExpiry);
+    void deleteResetToken(ObjectId userId);
+    void updatePassword(ObjectId userId, String password);
 }

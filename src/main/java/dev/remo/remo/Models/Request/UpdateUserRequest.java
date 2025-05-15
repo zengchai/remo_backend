@@ -1,8 +1,5 @@
 package dev.remo.remo.Models.Request;
 
-import java.util.ArrayList;
-
-import dev.remo.remo.Models.Users.User;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

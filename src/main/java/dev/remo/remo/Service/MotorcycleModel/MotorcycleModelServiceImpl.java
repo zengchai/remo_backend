@@ -2,14 +2,22 @@ package dev.remo.remo.Service.MotorcycleModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 import dev.remo.remo.Mappers.MotorcycleModelMapper;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
+import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 
 public class MotorcycleModelServiceImpl implements MotorcycleModelService {
@@ -36,9 +44,15 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
         return motorcycleModelMapper.convertModelDOToModel(motorcycleDO);
     }
 
+    public MotorcycleModel getMotorcycleModelById(String id) {
+        MotorcycleModelDO motorcycleDO = motorcycleModelRepository.getMotorcycleModelById(new ObjectId(id))
+                .orElseThrow(() -> new NotFoundResourceException("Motorcycle model not found"));
+        return motorcycleModelMapper.convertModelDOToModel(motorcycleDO);
+    }
+
     public void updateMotorcycleModelReviewList(MotorcycleModel motorcycleModel) {
         motorcycleModelRepository
-                .addReviewIdToMotorcycleModel(motorcycleModelMapper.convertModelToModelDO(motorcycleModel));
+                .addOrUpdateMotorcycleModel(motorcycleModelMapper.convertModelToModelDO(motorcycleModel));
     }
 
     public void removeReviewIdListById(String modelId, String reviewId) {
@@ -48,15 +62,36 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
                 .orElseThrow(() -> new NotFoundResourceException("Motorcycle model not found"));
 
         // Check if the review exists in the model
-        List<String> reviewIds = motorcycleModelDO.getReviews();
+        List<String> reviewIds = motorcycleModelDO.getReviewIds();
         if (!reviewIds.contains(reviewId)) {
             throw new NotFoundResourceException("Review not found in motorcycle model");
         }
         reviewIds.remove(reviewId);
-        motorcycleModelDO.setReviews(reviewIds);
+        motorcycleModelDO.setReviewIds(reviewIds);
 
-        // Save the updated model
-        motorcycleModelRepository.addReviewIdToMotorcycleModel(motorcycleModelDO);
+        motorcycleModelRepository.addOrUpdateMotorcycleModel(motorcycleModelDO);
     }
 
+    public Page<MotorcycleModel> getAllMotorcycleModelByPage(int page, int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MotorcycleModelDO> pageResult = motorcycleModelRepository.getAllMotorcycleModelByPage(pageable);
+
+        return motorcycleModelMapper.convertModelDOToModel(pageResult, pageable);
+    }
+    
+    public void createMotorcycleModel(String brand, String model, MultipartFile image) {
+        if(motorcycleModelRepository.findByBrandAndModel(brand, model).isPresent()){
+            throw new InvalidStatusException("Motorcycle model already exists");
+        }
+        String imageId = motorcycleModelRepository.uploadFiles(image);
+        MotorcycleModel motorcycleModel = motorcycleModelMapper.toDomain(brand,model,imageId);
+        MotorcycleModelDO motorcycleModelDO = motorcycleModelMapper.convertModelToModelDO(motorcycleModel);
+        motorcycleModelRepository.addOrUpdateMotorcycleModel(motorcycleModelDO);
+    }
+
+    public Resource getMotorcycleModelImageById(String id) {
+        return motorcycleModelRepository.getMotorcycleModelImageById(new ObjectId(id))
+                .orElseThrow(() -> new NotFoundResourceException("Motorcycle model not found"));
+    }
 }

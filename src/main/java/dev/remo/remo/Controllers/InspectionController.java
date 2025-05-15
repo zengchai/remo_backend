@@ -1,15 +1,17 @@
 package dev.remo.remo.Controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -96,6 +98,32 @@ public class InspectionController {
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("").message("Updated successfully")
                                                 .build());
+        }
+
+        @GetMapping("/getstatus")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getInspectionStatus(
+                        @RequestPart(value = "ids",required = true) List<String> ids,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getInspectionStatusByIds(ids))
+                                                .build());
+
+        }
+
+        @GetMapping("/get/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getInspectionDetailById(
+                        @PathVariable String id,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getInspectionDetailUserViewById(id))
+                                                .build());
+
         }
 
 }

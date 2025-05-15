@@ -3,9 +3,14 @@ package dev.remo.remo.Service.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Request.UpdateUserRequest;
+import dev.remo.remo.Models.Users.User;
 
 public interface UserService {
-    void updateUser(String id,MultipartFile image,UpdateUserRequest userRequest);
+    void updateUser(String id, MultipartFile image, UpdateUserRequest userRequest);
+
     void deleteUser(String id);
 
+    Boolean favouriteMotorcycleListing(String motorcycleListingId);
+
+    User getUserById(String id);
 }

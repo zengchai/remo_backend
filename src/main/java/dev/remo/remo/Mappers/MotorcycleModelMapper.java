@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import dev.remo.remo.Models.Forum.Review;
@@ -13,11 +16,21 @@ import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 
 @Component
 public class MotorcycleModelMapper {
+
+    public MotorcycleModel toDomain(String brand, String model, String imageId) {
+        return MotorcycleModel.builder()
+                .brand(brand)
+                .model(model)
+                .imageId(imageId)
+                .build();
+    }
+    
     public MotorcycleModel convertModelDOToModel(MotorcycleModelDO motorcycleModelDO) {
 
         MotorcycleModel.MotorcycleModelBuilder motorcycleModelBuilder = MotorcycleModel.builder();
-        if (motorcycleModelDO.getReviews() != null) {
-            List<Review> reviews = motorcycleModelDO.getReviews().stream()
+
+        if (motorcycleModelDO.getReviewIds() != null) {
+            List<Review> reviews = motorcycleModelDO.getReviewIds().stream()
                     .map(reviewId -> Review.builder().id(reviewId).build())
                     .collect(Collectors.toList());
             motorcycleModelBuilder.reviews(reviews);
@@ -35,6 +48,17 @@ public class MotorcycleModelMapper {
         return MotorcycleModelDO.builder().id(new ObjectId(motorcycleModel.getId()))
                 .brand(motorcycleModel.getBrand())
                 .model(motorcycleModel.getModel())
-                .reviews(reviewIds).build();
+                .imageId(motorcycleModel.getImageId())
+                .reviewIds(reviewIds).build();
     }
+
+    public Page<MotorcycleModel> convertModelDOToModel(Page<MotorcycleModelDO> motorcycleModelDOPage, Pageable pageable) {
+        List<MotorcycleModel> motorcycleModels = motorcycleModelDOPage.getContent()
+                .stream()
+                .map(this::convertModelDOToModel)
+                .collect(Collectors.toList());
+    
+        return new PageImpl<>(motorcycleModels, pageable, motorcycleModelDOPage.getTotalElements());
+    }
+    
 }

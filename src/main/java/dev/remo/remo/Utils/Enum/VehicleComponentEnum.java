@@ -63,8 +63,8 @@ public enum VehicleComponentEnum {
         return category;
     }
 
-    private static final Map<String, VehicleComponentEnum> DISPLAY_NAME_MAP =
-        Arrays.stream(values()).collect(Collectors.toMap(VehicleComponentEnum::getDisplayName, Function.identity()));
+    private static final Map<String, VehicleComponentEnum> DISPLAY_NAME_MAP = Arrays.stream(values())
+            .collect(Collectors.toMap(VehicleComponentEnum::getDisplayName, Function.identity()));
 
     public static boolean isValidComponent(String displayName) {
         return DISPLAY_NAME_MAP.containsKey(displayName);
@@ -76,8 +76,8 @@ public enum VehicleComponentEnum {
 
     public static void validateFlatMap(Map<String, Integer> scores) {
         List<String> missing = DISPLAY_NAME_MAP.keySet().stream()
-            .filter(name -> !scores.containsKey(name))
-            .toList();
+                .filter(name -> !scores.containsKey(name))
+                .toList();
 
         if (!missing.isEmpty()) {
             throw new IllegalArgumentException("Missing components: " + String.join(", ", missing));
@@ -91,9 +91,33 @@ public enum VehicleComponentEnum {
             int score = entry.getValue();
             if (score < 1 || score > 5) {
                 throw new IllegalArgumentException(
-                    String.format("Invalid score %d for %s. Must be between 1 and 5.", score, entry.getKey()));
+                        String.format("Invalid score %d for %s. Must be between 1 and 5.", score, entry.getKey()));
             }
         }
+    }
+
+    public static Map<String, Map<VehicleComponentEnum, Integer>> convertToEnumGroupedMap(
+            Map<String, Map<String, Integer>> grouped) {
+        Map<String, Map<VehicleComponentEnum, Integer>> converted = new HashMap<>();
+
+        for (Map.Entry<String, Map<String, Integer>> categoryEntry : grouped.entrySet()) {
+            String category = categoryEntry.getKey();
+            Map<String, Integer> components = categoryEntry.getValue();
+
+            Map<VehicleComponentEnum, Integer> enumComponents = new HashMap<>();
+            for (Map.Entry<String, Integer> componentEntry : components.entrySet()) {
+                VehicleComponentEnum componentEnum = VehicleComponentEnum.fromDisplayName(componentEntry.getKey());
+                if (componentEnum != null) {
+                    enumComponents.put(componentEnum, componentEntry.getValue());
+                } else {
+                    throw new IllegalArgumentException("Unknown component: " + componentEntry.getKey());
+                }
+            }
+
+            converted.put(category, enumComponents);
+        }
+
+        return converted;
     }
 
     public static Map<String, Map<String, Integer>> groupByCategory(Map<String, Integer> flatScores) {
@@ -101,13 +125,34 @@ public enum VehicleComponentEnum {
 
         for (Map.Entry<String, Integer> entry : flatScores.entrySet()) {
             VehicleComponentEnum component = fromDisplayName(entry.getKey());
-            if (component == null) continue;
+            if (component == null)
+                continue;
 
             String category = component.getCategory();
             grouped.computeIfAbsent(category, k -> new HashMap<>())
-                   .put(component.getDisplayName(), entry.getValue());
+                    .put(component.getDisplayName(), entry.getValue());
         }
 
         return grouped;
     }
+
+    public static Map<String, Map<String, Integer>> convertToStringGroupedMap(
+            Map<String, Map<VehicleComponentEnum, Integer>> grouped) {
+        Map<String, Map<String, Integer>> converted = new HashMap<>();
+
+        for (Map.Entry<String, Map<VehicleComponentEnum, Integer>> categoryEntry : grouped.entrySet()) {
+            String category = categoryEntry.getKey();
+            Map<VehicleComponentEnum, Integer> enumComponents = categoryEntry.getValue();
+
+            Map<String, Integer> stringComponents = new HashMap<>();
+            for (Map.Entry<VehicleComponentEnum, Integer> componentEntry : enumComponents.entrySet()) {
+                stringComponents.put(componentEntry.getKey().getDisplayName(), componentEntry.getValue());
+            }
+
+            converted.put(category, stringComponents);
+        }
+
+        return converted;
+    }
+
 }

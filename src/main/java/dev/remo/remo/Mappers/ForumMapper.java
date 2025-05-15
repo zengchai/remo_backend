@@ -1,12 +1,19 @@
 package dev.remo.remo.Mappers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import dev.remo.remo.Models.Forum.Review;
 import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
+import dev.remo.remo.Models.Response.ReviewCategoryUserViewResponse;
+import dev.remo.remo.Models.Response.ReviewCategoryViewResponse;
+import dev.remo.remo.Models.Response.ReviewUserView;
 import dev.remo.remo.Models.Users.User;
 import io.micrometer.common.util.StringUtils;
 
@@ -51,5 +58,52 @@ public class ForumMapper {
                 .user(User.builder().id(reviewDO.getUserId()).build())
                 .review(reviewDO.getReview())
                 .build();
+    }
+
+    public ReviewUserView convertReviewDOToUserDTO(ReviewDO reviewDO, User user) {
+
+        ReviewUserView.ReviewUserViewBuilder builder = ReviewUserView.builder();
+        if (StringUtils.isNotBlank(user.getName())) {
+            builder.userName(user.getName());
+        }
+        if (StringUtils.isNotBlank(user.getImageId())) {
+            builder.userImageId(user.getImageId());
+        }
+
+        return builder
+                .id(reviewDO.getId().toString())
+                .review(reviewDO.getReview())
+                .reviewImageId(reviewDO.getImageId())
+                .build();
+    }
+
+    public ReviewCategoryUserViewResponse convertToReviewCategoryUserViewResponse(Page<ReviewUserView> reviewUserViews,
+            MotorcycleModel motorcycleModel) {
+        return ReviewCategoryUserViewResponse.builder()
+                .reviews(reviewUserViews)
+                .brand(motorcycleModel.getBrand())
+                .model(motorcycleModel.getModel())
+                .imageId(motorcycleModel.getImageId())
+                .build();
+    }
+
+    public ReviewCategoryViewResponse convertToReviewCategoryViewResponse(List<MotorcycleModel> motorcycleModel) {
+        
+        List<ReviewCategoryUserViewResponse> reviewCategoryUserViewResponseList = new ArrayList<>();
+        for (MotorcycleModel model : motorcycleModel) {
+            int reviewsCount = 0;
+            if (model.getReviews() != null) {
+                reviewsCount = model.getReviews().size();
+            }
+            ReviewCategoryUserViewResponse reviewCategoryUserViewResponse = ReviewCategoryUserViewResponse.builder()
+                    .brand(model.getBrand())
+                    .model(model.getModel())
+                    .imageId(model.getImageId())
+                    .reviewsCount(reviewsCount)
+                    .build();
+            reviewCategoryUserViewResponseList.add(reviewCategoryUserViewResponse);
+        }
+
+        return ReviewCategoryViewResponse.builder().reviews(reviewCategoryUserViewResponseList).build();
     }
 }

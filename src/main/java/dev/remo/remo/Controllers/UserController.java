@@ -47,4 +47,18 @@ public class UserController {
         return ResponseEntity
                 .ok(GeneralResponse.builder().success(true).error("").message("Deleted Successfully").build());
     }
+
+    @PutMapping("/favourite/{listingId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<?> favouriteListing(@PathVariable String listingId, HttpServletRequest http) {
+        
+        String message = userService.favouriteMotorcycleListing(listingId) ? "Unfavourite successfully"
+                : "Favourite successfully";
+
+        return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                .message(message)
+                .build());
+    }
+
+
 }
