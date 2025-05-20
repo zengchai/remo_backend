@@ -8,6 +8,8 @@ import org.bson.types.ObjectId;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
@@ -28,10 +30,13 @@ public interface MotorListingRepository {
 
     void updateMotorcycleListingStatus(ObjectId objectId, String status, Map<String, String> extInfo);
 
-    Page<MotorcycleListingDO> getAllListingsByPage(Pageable pageable);
+    List<MotorcycleListingDO> getAllListingsForAdmin(Pageable pageable);
+
+    List<MotorcycleListingDO> getAllListingsForUser(Pageable pageable);
 
     Optional<Resource> getMotorcycleListingImageById(String id);
 
-    Page<MotorcycleListingDO> getMotorcycleListingByUserId(String id,Pageable pageable);
+    List<MotorcycleListingDO> getMotorcycleListingByUserId(String id);
 
+    Page<MotorcycleListingDO> getMotorcycleListingByFilter(List<Criteria> query, Pageable pageable);
 }

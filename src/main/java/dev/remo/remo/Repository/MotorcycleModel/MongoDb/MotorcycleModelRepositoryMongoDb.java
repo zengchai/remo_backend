@@ -50,14 +50,10 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
 
     @Override
     public Optional<MotorcycleModelDO> findByBrandAndModel(String brand, String model) {
-        try {
-            Query query = new Query(Criteria.where("brand").is(brand)
-                    .and("model").is(model));
-            MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
-            return Optional.ofNullable(result);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        Query query = new Query(Criteria.where("brand").is(brand)
+                .and("model").is(model));
+        MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -67,6 +63,7 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
 
     @Override
     public void addOrUpdateMotorcycleModel(MotorcycleModelDO motorcycleModelDO) {
+        System.err.println("MotorcycleModelDO: " + motorcycleModelDO);
         motorcycleModelMongoDb.save(motorcycleModelDO);
     }
 
@@ -90,4 +87,9 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
     }
 
+    public Optional<MotorcycleModelDO> findByBrand(String brand) {
+        Query query = new Query(Criteria.where("brand").is(brand));
+        MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
+        return Optional.ofNullable(result);
+    }
 }

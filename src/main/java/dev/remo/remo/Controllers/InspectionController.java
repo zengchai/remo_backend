@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
 import dev.remo.remo.Models.Request.CreateShopRequest;
+import dev.remo.remo.Models.Request.FilterInspectionRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
 import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Service.Inspection.InspectionService;
@@ -90,20 +91,31 @@ public class InspectionController {
         }
 
         @DeleteMapping("/delete/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> updateInspectionReport(@PathVariable String id, HttpServletRequest http) {
 
                 inspectionService.deleteInspection(id);
 
                 return ResponseEntity.ok(
-                                GeneralResponse.builder().success(true).error("").message("Updated successfully")
+                                GeneralResponse.builder().success(true).error("").message("Deleted successfully")
                                                 .build());
         }
 
-        @GetMapping("/getstatus")
+        @GetMapping("/getmyinspections")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getMyInspection(HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getMyInspection())
+                                                .build());
+
+        }
+
+        @PostMapping("/getstatus")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> getInspectionStatus(
-                        @RequestPart(value = "ids",required = true) List<String> ids,
+                        @RequestBody List<String> ids,
                         HttpServletRequest http) {
 
                 return ResponseEntity.ok(
@@ -126,4 +138,32 @@ public class InspectionController {
 
         }
 
+        @GetMapping("/getallinspection/{page}/{size}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getAllInspection(
+                        @PathVariable int page,
+                        @PathVariable int size,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getAllInspectionAdminView(page, size))
+                                                .build());
+
+        }
+
+        @PostMapping("/filter/{page}/{size}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getAllInspectionByFilters(
+                        @RequestBody FilterInspectionRequest inspectionFilterRequest,
+                        @PathVariable int page,
+                        @PathVariable int size,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getAllInspectionByFilter(inspectionFilterRequest,page, size))
+                                                .build());
+
+        }
 }

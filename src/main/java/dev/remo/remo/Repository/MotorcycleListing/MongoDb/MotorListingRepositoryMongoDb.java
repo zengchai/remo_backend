@@ -25,9 +25,9 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 
-import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Repository.MotorcycleListing.MotorListingRepository;
+import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
 import jakarta.annotation.PostConstruct;
 
@@ -98,8 +98,16 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         mongoTemplate.updateFirst(query, update, MotorcycleListingDO.class);
     }
 
-    public Page<MotorcycleListingDO> getAllListingsByPage(Pageable pageable) {
-        return motorListingMongoDb.findAll(pageable);
+    public List<MotorcycleListingDO> getAllListingsForAdmin(Pageable pageable) {
+        Query query = new Query();
+        query.with(pageable);
+        return mongoTemplate.find(query, MotorcycleListingDO.class);
+    }
+
+    public List<MotorcycleListingDO> getAllListingsForUser(Pageable pageable) {
+        Query query = new Query(Criteria.where("status").is(StatusEnum.ACTIVE.toString()));
+        query.with(pageable);
+        return mongoTemplate.find(query, MotorcycleListingDO.class);
     }
 
     public Optional<Resource> getMotorcycleListingImageById(String id) {
@@ -107,10 +115,19 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
     }
 
-    public Page<MotorcycleListingDO> getMotorcycleListingByUserId(String id,Pageable pageable) {
+    public List<MotorcycleListingDO> getMotorcycleListingByUserId(String id) {
         Query query = new Query(Criteria.where("userId").is(id));
-        long count = mongoTemplate.count(query, ReviewDO.class);
-        List<MotorcycleListingDO> reviews = mongoTemplate.find(query.with(pageable), MotorcycleListingDO.class);
-        return new PageImpl<>(reviews, pageable, count);
+        return mongoTemplate.find(query, MotorcycleListingDO.class);
+    }
+
+    public Page<MotorcycleListingDO> getMotorcycleListingByFilter(List<Criteria> criteriaList, Pageable pageable) {
+        Query query = new Query();
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+        }
+        long total = mongoTemplate.count(query, MotorcycleListingDO.class);
+        query.with(pageable);
+        return new PageImpl<>(mongoTemplate.find(query, MotorcycleListingDO.class), pageable, total);
     }
 }

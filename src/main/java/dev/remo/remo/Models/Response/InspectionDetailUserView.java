@@ -12,6 +12,8 @@ public class InspectionDetailUserView {
     private String date;
     private String shopName;
     private String mapUrl;
+    private String motorcycleListingId;
     private Map<String, Map<String, Integer>> vehicleComponentMap;
     private String status;
+    private Map<String, String> extInfo;
 }

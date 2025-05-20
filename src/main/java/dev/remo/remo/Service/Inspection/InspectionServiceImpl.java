@@ -1,5 +1,7 @@
 package dev.remo.remo.Service.Inspection;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -8,6 +10,13 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,7 +28,9 @@ import dev.remo.remo.Models.Inspection.Shop.ShopDO;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
 import dev.remo.remo.Models.Request.CreateShopRequest;
+import dev.remo.remo.Models.Request.FilterInspectionRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
+import dev.remo.remo.Models.Response.InspectionDetailAdminView;
 import dev.remo.remo.Models.Response.InspectionDetailUserView;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Inspection.InspectionRepository;
@@ -27,16 +38,18 @@ import dev.remo.remo.Repository.Shop.ShopRepository;
 import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
 import dev.remo.remo.Utils.Enum.StatusEnum;
+import dev.remo.remo.Utils.Enum.UserRole;
 import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import dev.remo.remo.Utils.General.ExtInfoUtil;
+import io.micrometer.common.util.StringUtils;
 
 public class InspectionServiceImpl implements InspectionService {
 
     private static final Logger logger = LoggerFactory.getLogger(InspectionServiceImpl.class);
-    
+
     @Autowired
     InspectionRepository inspectionRepository;
 
@@ -141,25 +154,29 @@ public class InspectionServiceImpl implements InspectionService {
 
     public void deleteInspection(String id) {
         logger.info("Deleting inspection: " + id);
+        User currentUser = authService.getCurrentUser();
         Inspection inspection = getInspectionById(id);
         MotorcycleListing motorcycleListing = motorcycleListingService
                 .getMotorcycleListingById(inspection.getMotorcycleListing().getId());
         authService.validateUser(motorcycleListing.getUser().getId());
 
-        if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()) {
+        if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority() && !currentUser.getRole().contains(UserRole.ADMIN)) {
             throw new InvalidStatusException("Inspection already completed: " + id);
         }
 
         inspectionRepository.deleteInspection(new ObjectId(inspection.getId()));
+        motorcycleListingService.updateMotorcycleListingInspection(motorcycleListing, null);
         logger.info("Deleted inspection: " + inspection.getId());
     }
 
     public Map<String, String> getInspectionStatusByIds(List<String> id) {
         logger.info("Getting inspection status for IDs: " + id);
         List<ObjectId> objectIds = id.stream().map(ObjectId::new).toList();
-        Map<ObjectId, String> map = inspectionRepository.getInspectionStatusList(objectIds).orElseThrow(() -> {
-            return new NotFoundResourceException("Inspection not found for IDs: " + id);
-        }).stream()
+        List<InspectionDO> inspectionDOList = inspectionRepository.getInspectionStatusList(objectIds);
+        if (inspectionDOList.isEmpty()) {
+            throw new NotFoundResourceException("No inspections found for the provided IDs");
+        }
+        Map<ObjectId, String> map = inspectionDOList.stream()
                 .collect(Collectors.toMap(InspectionDO::getId, InspectionDO::getStatus));
         return map.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey().toString(), Map.Entry::getValue));
@@ -168,6 +185,100 @@ public class InspectionServiceImpl implements InspectionService {
     public InspectionDetailUserView getInspectionDetailUserViewById(String id) {
         logger.info("Getting inspection detail view for ID: " + id);
         Inspection inspection = getInspectionById(id);
-        return inspectionMapper.convertInspectionToDetailView(inspection);
+        ShopDO shopDO = getShopById(inspection.getShop().getId());
+        return inspectionMapper.convertInspectionToDetailView(inspection, shopDO);
+    }
+
+    public List<InspectionDetailUserView> getMyInspection() {
+        User currentUser = authService.getCurrentUser();
+        List<MotorcycleListing> motorcycleListings = motorcycleListingService
+                .getMotorcycleListingByUserId(currentUser.getId());
+        List<Inspection> inspectionList = new ArrayList<>();
+        Map<String, ShopDO> shopMap = new HashMap<>();
+        for (MotorcycleListing listing : motorcycleListings) {
+            if (listing.getInspection() != null) {
+                Inspection inspection = getInspectionById(listing.getInspection().getId());
+                inspectionList.add(inspection);
+            }
+        }
+        return inspectionList.stream()
+                .map(inspection -> {
+                    ShopDO shopDO = shopMap.computeIfAbsent(inspection.getShop().getId(),
+                            id -> getShopById(id.toString()));
+                    return inspectionMapper.convertInspectionToDetailView(inspection, shopDO);
+                }).toList();
+    }
+
+    public Page<InspectionDetailAdminView> getAllInspectionAdminView(int page, int size) {
+        logger.info("Getting all inspection admin view for page: " + page + ", size: " + size);
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "_id"));
+        List<InspectionDO> inspectionDOList = new ArrayList<>();
+        Map<String, ShopDO> shopMap = new HashMap<>();
+        List<InspectionDetailAdminView> inspectionDetailAdminViews = inspectionDOList.stream().map(inspectionDO -> {
+            ShopDO shopDO = shopMap.computeIfAbsent(inspectionDO.getShopId(),
+                    id -> getShopById(id.toString()));
+            return inspectionMapper.convertToAdminView(inspectionDO, shopDO);
+        }).collect(Collectors.toList());
+        return new PageImpl<InspectionDetailAdminView>(
+                inspectionDetailAdminViews, pageable, inspectionDetailAdminViews.size());
+    }
+
+    public Page<InspectionDetailAdminView> getAllInspectionByFilter(FilterInspectionRequest filterInspectionRequest,
+            int page, int size) {
+        logger.info("Getting all inspection by filter for page: " + page + ", size: " + size);
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "_id"));
+
+        List<Criteria> criteriaList = new ArrayList<>();
+
+        String shopId = filterInspectionRequest.getShopId();
+        String status = filterInspectionRequest.getStatus();
+        String minDate = filterInspectionRequest.getMinDate();
+        String maxDate = filterInspectionRequest.getMaxDate();
+        String minTime = filterInspectionRequest.getMinTime();
+        String maxTime = filterInspectionRequest.getMaxTime();
+
+        if (StringUtils.isNotBlank(shopId)) {
+            criteriaList.add(Criteria.where("shopId").is(shopId));
+        }
+
+        if (StringUtils.isNotBlank(minDate) && StringUtils.isNotBlank(maxDate)) {
+            criteriaList.add(Criteria.where("date").gte(minDate).lte(maxDate));
+        } else if (StringUtils.isNotBlank(minDate)) {
+            criteriaList.add(Criteria.where("date").gte(minDate));
+        } else if (StringUtils.isNotBlank(maxDate)) {
+            criteriaList.add(Criteria.where("date").lte(maxDate));
+        }
+
+        if (StringUtils.isNotBlank(minTime) && StringUtils.isNotBlank(maxTime)) {
+            criteriaList.add(Criteria.where("time").gte(minTime).lte(maxTime));
+        } else if (StringUtils.isNotBlank(minTime)) {
+            criteriaList.add(Criteria.where("time").gte(minTime));
+        } else if (StringUtils.isNotBlank(maxTime)) {
+            criteriaList.add(Criteria.where("time").lte(maxTime));
+        }
+
+        if (StringUtils.isNotBlank(status)) {
+            criteriaList.add(Criteria.where("status").is(StatusEnum.fromCode(status).getCode()));
+        }
+        Query query = new Query();
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+        }
+
+        query.with(pageable);
+
+        List<InspectionDO> inspectionDOList = inspectionRepository.getAllInspection(query);
+
+        Map<String, ShopDO> shopMap = new HashMap<>();
+        List<InspectionDetailAdminView> inspectionDetailAdminViews = inspectionDOList.stream().map(inspectionDO -> {
+            ShopDO shopDO = shopMap.computeIfAbsent(inspectionDO.getShopId(),
+                    id -> getShopById(id.toString()));
+            return inspectionMapper.convertToAdminView(inspectionDO, shopDO);
+        }).collect(Collectors.toList());
+        return new PageImpl<InspectionDetailAdminView>(
+                inspectionDetailAdminViews, pageable, inspectionDetailAdminViews.size());
     }
 }

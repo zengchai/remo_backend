@@ -13,6 +13,8 @@ public interface MotorcycleModelService {
 
     public MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model);
 
+    public MotorcycleModel getMotorcycleByBrand(String brand);
+
     public MotorcycleModel getMotorcycleModelById(String id);
 
     public Resource getMotorcycleModelImageById(String id);

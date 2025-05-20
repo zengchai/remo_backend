@@ -89,6 +89,15 @@ public class ForumController {
                                 .build());
         }
 
+        @GetMapping("/getmyreviews")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getMyReview(HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Fetched successfully")
+                                .data(forumService.getMyReviews())
+                                .build());
+        }
         @GetMapping("/images/{id}")
         public ResponseEntity<Resource> getForumImage(@PathVariable String id) {
 
@@ -103,5 +112,16 @@ public class ForumController {
                 return ResponseEntity.ok()
                                 .contentType(MediaType.IMAGE_JPEG)
                                 .body(forumService.getReviewImageById(id));
+        }
+
+        @GetMapping("/getallreviews/{page}/{size}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getAllReview(@PathVariable int page, @PathVariable int size,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Fetched successfully")
+                                .data(forumService.getAllReview(page, size))
+                                .build());
         }
 }

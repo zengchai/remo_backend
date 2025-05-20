@@ -116,7 +116,6 @@ public enum VehicleComponentEnum {
 
             converted.put(category, enumComponents);
         }
-
         return converted;
     }
 

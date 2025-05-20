@@ -2,15 +2,14 @@ package dev.remo.remo.Service.MotorcycleModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
@@ -38,6 +37,12 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
 
     }
 
+    public MotorcycleModel getMotorcycleByBrand(String brand){
+ MotorcycleModelDO motorcycleDO = motorcycleModelRepository.findByBrand(brand)
+                .orElseThrow(() -> new NotFoundResourceException(brand + " is not found"));
+        return motorcycleModelMapper.convertModelDOToModel(motorcycleDO);
+    }
+
     public MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model) {
         MotorcycleModelDO motorcycleDO = motorcycleModelRepository.findByBrandAndModel(brand, model)
                 .orElseThrow(() -> new NotFoundResourceException(brand + " " + model + " not found"));
@@ -51,6 +56,7 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
     }
 
     public void updateMotorcycleModelReviewList(MotorcycleModel motorcycleModel) {
+        System.err.println("MotorcycleModel:" + motorcycleModel);
         motorcycleModelRepository
                 .addOrUpdateMotorcycleModel(motorcycleModelMapper.convertModelToModelDO(motorcycleModel));
     }
@@ -73,19 +79,20 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
     }
 
     public Page<MotorcycleModel> getAllMotorcycleModelByPage(int page, int size) {
-        
-        Pageable pageable = PageRequest.of(page, size);
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "_id"));
         Page<MotorcycleModelDO> pageResult = motorcycleModelRepository.getAllMotorcycleModelByPage(pageable);
 
         return motorcycleModelMapper.convertModelDOToModel(pageResult, pageable);
     }
-    
+
     public void createMotorcycleModel(String brand, String model, MultipartFile image) {
-        if(motorcycleModelRepository.findByBrandAndModel(brand, model).isPresent()){
+        if (motorcycleModelRepository.findByBrandAndModel(brand, model).isPresent()) {
             throw new InvalidStatusException("Motorcycle model already exists");
         }
         String imageId = motorcycleModelRepository.uploadFiles(image);
-        MotorcycleModel motorcycleModel = motorcycleModelMapper.toDomain(brand,model,imageId);
+        MotorcycleModel motorcycleModel = motorcycleModelMapper.toDomain(brand, model, imageId);
         MotorcycleModelDO motorcycleModelDO = motorcycleModelMapper.convertModelToModelDO(motorcycleModel);
         motorcycleModelRepository.addOrUpdateMotorcycleModel(motorcycleModelDO);
     }

@@ -27,7 +27,8 @@ public class InspectionDO {
     private String motorcycleListingId;
     @NotBlank
     private String status;
-    private Map<String, Map<String, Integer>> vehicleComponentMap;
+
+    private Map<String, Map<String, Integer>> componentScores;
     private Map<String,String> extInfo;
 
 }

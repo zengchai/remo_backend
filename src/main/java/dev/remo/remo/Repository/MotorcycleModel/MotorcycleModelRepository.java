@@ -26,4 +26,6 @@ public interface MotorcycleModelRepository {
 
     Optional<Resource> getMotorcycleModelImageById(ObjectId id);
 
+    Optional<MotorcycleModelDO> findByBrand(String brand);
+
 }

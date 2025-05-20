@@ -8,20 +8,24 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.GridFSDownloadStream;
 
-import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Repository.User.UserRepository;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
+import jakarta.annotation.PostConstruct;
 
 public class UserRespositoryMongoDb implements UserRepository {
 
@@ -33,6 +37,16 @@ public class UserRespositoryMongoDb implements UserRepository {
 
     @Autowired
     MongoTemplate mongoTemplate;
+
+    @Autowired
+    MongoOperations mongoOps;
+
+    private GridFSBucket gridFSBucket;
+
+    @PostConstruct
+    public void init() {
+        this.gridFSBucket = GridFSBuckets.create(mongoDatabase, "user");
+    }
 
     public void saveUser(UserDO user) {
         userMongoDb.save(user);
@@ -58,16 +72,14 @@ public class UserRespositoryMongoDb implements UserRepository {
     }
 
     public void deleteImage(ObjectId id) {
-        GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, "user");
-        bucket.delete(id);
+        gridFSBucket.delete(id);
     }
 
     public String uploadImage(MultipartFile file) {
-        GridFSBucket bucket = GridFSBuckets.create(mongoDatabase, "user");
         try {
             InputStream inputStream = file.getInputStream();
             String fileName = file.getOriginalFilename();
-            ObjectId fileId = bucket.uploadFromStream(fileName, inputStream);
+            ObjectId fileId = gridFSBucket.uploadFromStream(fileName, inputStream);
             return fileId.toString();
         } catch (IOException e) {
             throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());
@@ -96,7 +108,7 @@ public class UserRespositoryMongoDb implements UserRepository {
         mongoTemplate.updateFirst(query, update, UserDO.class);
     }
 
-    public void updatePassword(ObjectId userId, String password){
+    public void updatePassword(ObjectId userId, String password) {
         Query query = new Query(Criteria.where("_id").is(userId));
         Update update = new Update()
                 .set("password", password);
@@ -111,4 +123,14 @@ public class UserRespositoryMongoDb implements UserRepository {
     public Optional<UserDO> findById(ObjectId id) {
         return userMongoDb.findById(id);
     }
+
+    public void removeFavouriteListingById(Query query, Update update) {
+        mongoOps.updateMulti(query, update, UserDO.class);
+    }
+
+    public Optional<Resource> getUserImageById(ObjectId id) {
+        GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(id);
+        return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
+    }
+
 }

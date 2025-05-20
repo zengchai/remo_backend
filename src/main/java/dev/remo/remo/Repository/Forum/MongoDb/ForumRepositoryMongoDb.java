@@ -76,17 +76,25 @@ public class ForumRepositoryMongoDb implements ForumRepository {
         gridFSBucket.delete(id);
     }
 
+    public List<ReviewDO> getReviewsByUserId(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        return mongoTemplate.find(query, ReviewDO.class);
+    }
+    
     public Optional<Resource> getReviewImageById(ObjectId id) {
         GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(id);
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
     }
 
     @Override
-    public Page<ReviewDO> getReviewsByMotorcycleModelIdWithPaging(ObjectId id, Pageable pageable) {
-        Query query = new Query(Criteria.where("id").is(id));
+    public Page<ReviewDO> getReviewsByMotorcycleModelIdWithPaging(String motorcycleModelId, Pageable pageable) {
+        Query query = new Query(Criteria.where("motorcycleModelId").is(motorcycleModelId));
         long count = mongoTemplate.count(query, ReviewDO.class);
         List<ReviewDO> reviews = mongoTemplate.find(query.with(pageable), ReviewDO.class);
         return new PageImpl<>(reviews, pageable, count);
     }
 
+    public Page<ReviewDO> getAllReviewsByPage(Pageable pageable) {
+        return forumMongoDb.findAll(pageable);
+    }
 }

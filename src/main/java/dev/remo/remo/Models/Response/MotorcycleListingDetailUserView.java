@@ -12,6 +12,7 @@ public class MotorcycleListingDetailUserView {
     private String id;
     private String brand;
     private String model;
+    private String userId;
     private String cubicCapacity;
     private String transmission;
     private String manufacturedYear;
@@ -20,9 +21,10 @@ public class MotorcycleListingDetailUserView {
     private String mileage;
     private String price;
     private String inspectionId;
-    private String insepctionStatus;
-    private String platenNumber;
+    private String inspectionStatus;
+    private String plateNumber;
     private String phoneNumber;
+    private String status;
     private Boolean isFavourite;
     private List<String> imagesIds;
 }

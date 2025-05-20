@@ -1,6 +1,8 @@
 package dev.remo.remo.Controllers;
 
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Request.CreateOrUpdateListingRequest;
+import dev.remo.remo.Models.Request.FilterListingRequest;
 import dev.remo.remo.Models.Request.PredictPriceRequest;
 import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
@@ -71,15 +74,14 @@ public class ListingContorller {
                                                 .build());
         }
 
-        @PutMapping(value = "/updateStatus/{id}")
+        @PostMapping(value = "/updateStatus/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> updateListingStatus(
                         @PathVariable String id,
-                        @RequestPart(required = true) String status,
-                        @RequestPart(required = true) String remark,
+                        @RequestBody Map<String, String> body,
                         HttpServletRequest http) {
 
-                motorcycleListingService.updateMotorcycleListingStatus(id, status, remark);
+                motorcycleListingService.updateMotorcycleListingStatus(id, body.get("status"),  body.get("remark"));
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder()
@@ -149,8 +151,7 @@ public class ListingContorller {
                 return ResponseEntity.ok(GeneralResponse.builder()
                                 .success(true)
                                 .error("")
-                                .data(motorcycleListingService.getMotorcycleListingListUserView(page, size)
-                                                .getContent())
+                                .data(motorcycleListingService.getMotorcycleListingListUserView(page, size))
                                 .build());
 
         }
@@ -163,4 +164,44 @@ public class ListingContorller {
                                 .body(motorcycleListingService.getMotorcycleListingImageById(id));
         }
 
+        @PostMapping("/filter/{page}/{size}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> filterListings(
+                        @RequestBody FilterListingRequest filterRequest,
+                        @PathVariable int page,
+                        @PathVariable int size,
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder()
+                                .success(true)
+                                .error("")
+                                .data(motorcycleListingService.filterListings(filterRequest, page, size))
+                                .build());
+        }
+
+        @PostMapping("/createMotorcycleModel")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> createMotorcycleModel(
+                        @RequestPart(value = "brand", required = true) String brand,
+                        @RequestPart(value = "model", required = true) String model,
+                        @RequestPart(value = "file", required = true) MultipartFile image,
+                        HttpServletRequest http) {
+
+                motorcycleListingService.createMotorcycleModel(brand,model, image);
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Created successfully").build());
+        }
+
+    @PutMapping("/favourite/{listingId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<?> favouriteListing(@PathVariable String listingId, HttpServletRequest http) {
+        
+        String message = motorcycleListingService.favouriteMotorcycleListing(listingId) ? "Unfavourite successfully"
+                : "Favourite successfully";
+
+        return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                .message(message)
+                .build());
+    }
 }

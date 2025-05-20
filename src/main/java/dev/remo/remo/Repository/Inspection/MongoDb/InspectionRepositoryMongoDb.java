@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -26,18 +27,19 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
     public void updateInspectionStatus(ObjectId inspectionId, String status, Map<String, String> extInfo) {
         Query query = new Query(Criteria.where("_id").is(inspectionId));
         Update update = new Update()
-            .set("status", status)
-            .set("extInfo", extInfo);
+                .set("status", status)
+                .set("extInfo", extInfo);
         mongoTemplate.updateFirst(query, update, InspectionDO.class);
     }
 
     @Override
-    public void updateInspectionReport(ObjectId inspectionId, String status, Map<String, Map<String, Integer>> componentScores, Map<String, String> extInfo) {
+    public void updateInspectionReport(ObjectId inspectionId, String status,
+            Map<String, Map<String, Integer>> componentScores, Map<String, String> extInfo) {
         Query query = new Query(Criteria.where("_id").is(inspectionId));
         Update update = new Update()
-            .set("status", status)
-            .set("componentScores", componentScores)
-            .set("extInfo", extInfo);
+                .set("status", status)
+                .set("componentScores", componentScores)
+                .set("extInfo", extInfo);
         mongoTemplate.updateFirst(query, update, InspectionDO.class);
     }
 
@@ -53,7 +55,11 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         inspectionMongoDb.deleteById(inspectionId);
     }
 
-    public Optional<List<InspectionDO>> getInspectionStatusList(List<ObjectId> listingId) {
-        return Optional.ofNullable(inspectionMongoDb.findAllById(listingId));
+    public List<InspectionDO> getInspectionStatusList(List<ObjectId> listingId) {
+        return inspectionMongoDb.findAllById(listingId);
+    }
+
+    public List<InspectionDO> getAllInspection(Query query) {
+        return mongoTemplate.find(query, InspectionDO.class);
     }
 }

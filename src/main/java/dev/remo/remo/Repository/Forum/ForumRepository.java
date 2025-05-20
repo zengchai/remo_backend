@@ -1,5 +1,6 @@
 package dev.remo.remo.Repository.Forum;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.bson.types.ObjectId;
@@ -22,7 +23,11 @@ public interface ForumRepository {
 
     String uploadFiles(MultipartFile file);
 
+    List<ReviewDO> getReviewsByUserId(String userId);
+
     Optional<Resource> getReviewImageById(ObjectId id);
 
-    Page<ReviewDO> getReviewsByMotorcycleModelIdWithPaging(ObjectId id, Pageable pageable);
+    Page<ReviewDO> getReviewsByMotorcycleModelIdWithPaging(String motorcycleModelId, Pageable pageable);
+
+    Page<ReviewDO> getAllReviewsByPage(Pageable pageable);
 }

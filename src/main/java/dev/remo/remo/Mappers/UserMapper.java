@@ -10,6 +10,7 @@ import dev.remo.remo.Models.Request.UpdateUserRequest;
 import dev.remo.remo.Models.Response.JwtResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
+import dev.remo.remo.Utils.Enum.UserRole;
 import io.micrometer.common.util.StringUtils;
 
 @Component
@@ -54,7 +55,7 @@ public class UserMapper {
         return userDOBuilder
                 .password(user.getPassword())
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(UserRole.convertToString(user.getRole()))
                 .build();
     }
 
@@ -79,7 +80,7 @@ public class UserMapper {
                 .password(userDO.getPassword())
                 .email(userDO.getEmail())
                 .favouriteListingIds(userDO.getFavouriteListingIds())
-                .role(userDO.getRole())
+                .role(UserRole.convertToUserRole(userDO.getRole()))
                 .build();
     }
 
@@ -87,7 +88,7 @@ public class UserMapper {
         return User.builder()
                 .email(signUpRequest.getEmail())
                 .password(signUpRequest.getPassword())
-                .role(signUpRequest.getRoles())
+                .role(UserRole.convertToUserRole(signUpRequest.getRoles()))
                 .build();
     }
 
@@ -95,7 +96,7 @@ public class UserMapper {
         return JwtResponse.builder()
                 .token(accessToken)
                 .email(user.getEmail())
-                .roles(user.getRole())
+                .roles(UserRole.convertToString(user.getRole()))
                 .success(true)
                 .error("")
                 .message("User signed in successfully")

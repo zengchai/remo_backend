@@ -122,9 +122,12 @@ public class MotorcycleListingMapper {
                 .model(motorcycleModel.getModel())
                 .manufacturedYear(motorcycleListingDO.getManufacturedYear())
                 .state(motorcycleListingDO.getState())
+                .area(motorcycleListingDO.getArea())
                 .mileage(motorcycleListingDO.getMileage())
                 .price(motorcycleListingDO.getPrice())
                 .phoneNumber(motorcycleListingDO.getPhoneNumber())
+                .status(motorcycleListingDO.getStatus())
+                .createdAt(motorcycleListingDO.getCreatedAt())
                 .imagesIds(motorcycleListingDO.getImagesIds().get(0))
                 .build();
 
@@ -137,7 +140,7 @@ public class MotorcycleListingMapper {
                 .builder();
 
         if (motorcycleListing.getInspection() == null) {
-            motorcycleListingDetailUserViewBuilder.insepctionStatus(StatusEnum.NOT_STARTED.getCode());
+            motorcycleListingDetailUserViewBuilder.inspectionStatus(StatusEnum.NOT_STARTED.getCode());
         } else {
             motorcycleListingDetailUserViewBuilder.inspectionId(motorcycleListing.getInspection().getId());
         }
@@ -146,6 +149,8 @@ public class MotorcycleListingMapper {
                 .id(motorcycleListing.getId().toString())
                 .brand(motorcycleModel.getBrand())
                 .model(motorcycleModel.getModel())
+                .userId(motorcycleListing.getUser().getId())
+                .status(motorcycleListing.getStatus().getCode())
                 .cubicCapacity(motorcycleListing.getCubicCapacity())
                 .transmission(motorcycleListing.getTransmission())
                 .manufacturedYear(motorcycleListing.getManufacturedYear())
@@ -153,7 +158,7 @@ public class MotorcycleListingMapper {
                 .area(motorcycleListing.getArea())
                 .mileage(motorcycleListing.getMileage())
                 .price(motorcycleListing.getPrice())
-                .platenNumber(motorcycleListing.getPlateNumber())
+                .plateNumber(motorcycleListing.getPlateNumber())
                 .phoneNumber(motorcycleListing.getPhoneNumber())
                 .imagesIds(motorcycleListing.getImagesIds())
                 .isFavourite(isFavourite)

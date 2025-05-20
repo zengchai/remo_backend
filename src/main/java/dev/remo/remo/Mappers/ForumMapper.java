@@ -15,6 +15,7 @@ import dev.remo.remo.Models.Response.ReviewCategoryUserViewResponse;
 import dev.remo.remo.Models.Response.ReviewCategoryViewResponse;
 import dev.remo.remo.Models.Response.ReviewUserView;
 import dev.remo.remo.Models.Users.User;
+import dev.remo.remo.Utils.General.DateUtil;
 import io.micrometer.common.util.StringUtils;
 
 @Component
@@ -48,6 +49,7 @@ public class ForumMapper {
                 .imageId(review.getImageId())
                 .userId(review.getUser().getId())
                 .review(review.getReview())
+                .createdAt(DateUtil.getCurrentDateTime())
                 .build();
     }
 
@@ -57,10 +59,11 @@ public class ForumMapper {
                 .motorcycleModel(MotorcycleModel.builder().id(reviewDO.getMotorcycleModelId()).build())
                 .user(User.builder().id(reviewDO.getUserId()).build())
                 .review(reviewDO.getReview())
+                .createdAt(reviewDO.getCreatedAt())
                 .build();
     }
 
-    public ReviewUserView convertReviewDOToUserDTO(ReviewDO reviewDO, User user) {
+    public ReviewUserView convertReviewDOToUserDTO(ReviewDO reviewDO,MotorcycleModel motorcycleModel, User user) {
 
         ReviewUserView.ReviewUserViewBuilder builder = ReviewUserView.builder();
         if (StringUtils.isNotBlank(user.getName())) {
@@ -73,7 +76,10 @@ public class ForumMapper {
         return builder
                 .id(reviewDO.getId().toString())
                 .review(reviewDO.getReview())
+                .brand(motorcycleModel.getBrand())
+                .model(motorcycleModel.getModel())
                 .reviewImageId(reviewDO.getImageId())
+                .createdAt(reviewDO.getCreatedAt())
                 .build();
     }
 

@@ -12,11 +12,14 @@ public class MotorcycleListingUserView {
     private String model;
     private String manufacturedYear;
     private String state;
+    private String area;
     private String mileage;
     private String price;
     private String insepctionStatus;
     private String inspectionId;
     private String phoneNumber;
     private String imagesIds;
+    private String createdAt;
+    private String status;
 
 }

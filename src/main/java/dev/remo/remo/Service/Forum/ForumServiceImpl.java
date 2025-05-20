@@ -1,5 +1,9 @@
 package dev.remo.remo.Service.Forum;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -79,7 +84,7 @@ public class ForumServiceImpl implements ForumService {
         MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleByBrandAndModel(
                 review.getMotorcycleModel().getBrand(),
                 review.getMotorcycleModel().getModel());
-
+                
         review.setUser(currentUser);
         review.setMotorcycleModel(motorcycleModel);
 
@@ -102,22 +107,25 @@ public class ForumServiceImpl implements ForumService {
 
         forumRepository.deleteReviewImage(new ObjectId(existingReview.getImageId()));
         logger.info("Deleted reviewImage: " + existingReview.getImageId());
-        forumRepository.deleteReviewById(new ObjectId(reviewId));
-        logger.info("Deleted review: " + reviewId);
         motorcycleModelService.removeReviewIdListById(existingReview.getMotorcycleModelId(), reviewId);
         logger.info(
                 "Review ID removed from motorcycle model (" + existingReview.getMotorcycleModelId() + "): " + reviewId);
+        forumRepository.deleteReviewById(new ObjectId(reviewId));
+        logger.info("Deleted review: " + reviewId);
     }
 
     public ReviewUserView getReviewById(String reviewId) {
         ReviewDO reviewDO = getReviewbyId(reviewId);
+        MotorcycleModel motorcycleModel = motorcycleModelService
+                .getMotorcycleModelById(reviewDO.getMotorcycleModelId());
         User user = userService.getUserById(reviewDO.getUserId());
-        return forumMapper.convertReviewDOToUserDTO(reviewDO, user);
+        return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, user);
     }
 
-    public Resource getForumImageById(String id){
+    public Resource getForumImageById(String id) {
         return motorcycleModelService.getMotorcycleModelImageById(id);
     }
+
     public Resource getReviewImageById(String id) {
         return forumRepository.getReviewImageById(new ObjectId(id))
                 .orElseThrow(() -> new NotFoundResourceException("Image not found"));
@@ -125,18 +133,44 @@ public class ForumServiceImpl implements ForumService {
 
     public ReviewCategoryUserViewResponse getAllReviewsByMotorcycleModelId(String motorcycleModelId, int page,
             int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size,
+        Sort.by(Sort.Direction.DESC, "_id"));
+        MotorcycleModel motorcycleModel = motorcycleModelService
+                .getMotorcycleModelById(motorcycleModelId);
         Page<ReviewUserView> reviewUserViews = forumRepository
-                .getReviewsByMotorcycleModelIdWithPaging(new ObjectId(motorcycleModelId), pageable).map(
+                .getReviewsByMotorcycleModelIdWithPaging(motorcycleModelId, pageable).map(
                         reviewDO -> {
                             User user = userService.getUserById(reviewDO.getUserId());
-                            return forumMapper.convertReviewDOToUserDTO(reviewDO, user);
+                            return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, user);
                         });
-        MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleModelById(motorcycleModelId);
         return forumMapper.convertToReviewCategoryUserViewResponse(reviewUserViews, motorcycleModel);
+    }
+
+    public List<ReviewUserView> getMyReviews() {
+        User currentUser = authService.getCurrentUser();
+        return forumRepository.getReviewsByUserId(currentUser.getId()).stream()
+                .map(reviewDO -> {
+                    MotorcycleModel motorcycleModel = motorcycleModelService
+                            .getMotorcycleModelById(reviewDO.getMotorcycleModelId());
+                    return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, currentUser);
+                }).toList();
     }
 
     public ReviewCategoryViewResponse getAllReview() {
         return forumMapper.convertToReviewCategoryViewResponse(motorcycleModelService.getMotorcycleList());
+    }
+
+    public Page<ReviewUserView> getAllReview(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "_id"));
+        User currentUser = authService.getCurrentUser();
+        Map<String, MotorcycleModel> motorcycleModelCache = new HashMap<String, MotorcycleModel>();
+
+        return forumRepository.getAllReviewsByPage(pageable).map(reviewDO -> {
+            MotorcycleModel motorcycleModel = motorcycleModelCache.computeIfAbsent(reviewDO.getMotorcycleModelId(),
+                    id -> motorcycleModelService.getMotorcycleModelById(id));
+            return forumMapper.convertReviewDOToUserDTO(reviewDO,
+                    motorcycleModel, currentUser);
+        });
     }
 }

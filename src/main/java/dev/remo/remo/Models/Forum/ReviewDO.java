@@ -27,4 +27,7 @@ public class ReviewDO {
     
     @NotBlank
     private String imageId;
+
+    @NotBlank
+    private String createdAt;
 }
