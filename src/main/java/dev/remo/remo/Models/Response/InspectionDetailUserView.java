@@ -9,10 +9,14 @@ import lombok.Data;
 @Builder
 public class InspectionDetailUserView {
     
+    private String id;
     private String date;
+    private String time;
     private String shopName;
-    private String mapUrl;
-    private String motorcycleListingId;
+    private String address;
+    private String shopImageId;
+    private String brand;
+    private String model;
     private Map<String, Map<String, Integer>> vehicleComponentMap;
     private String status;
     private Map<String, String> extInfo;

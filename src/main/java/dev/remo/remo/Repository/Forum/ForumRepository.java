@@ -23,7 +23,7 @@ public interface ForumRepository {
 
     String uploadFiles(MultipartFile file);
 
-    List<ReviewDO> getReviewsByUserId(String userId);
+    Page<ReviewDO> getReviewsByUserId(String userId,Pageable pageable);
 
     Optional<Resource> getReviewImageById(ObjectId id);
 

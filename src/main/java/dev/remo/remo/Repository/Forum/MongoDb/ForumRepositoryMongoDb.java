@@ -76,11 +76,13 @@ public class ForumRepositoryMongoDb implements ForumRepository {
         gridFSBucket.delete(id);
     }
 
-    public List<ReviewDO> getReviewsByUserId(String userId) {
+    public Page<ReviewDO> getReviewsByUserId(String userId, Pageable pageable) {
         Query query = new Query(Criteria.where("userId").is(userId));
-        return mongoTemplate.find(query, ReviewDO.class);
+        query.with(pageable);
+        long count = mongoTemplate.count(query, ReviewDO.class);
+        return new PageImpl<>(mongoTemplate.find(query, ReviewDO.class), pageable, count);
     }
-    
+
     public Optional<Resource> getReviewImageById(ObjectId id) {
         GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(id);
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));

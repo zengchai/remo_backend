@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,8 +22,8 @@ import dev.remo.remo.Models.Forum.Review;
 import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
+import dev.remo.remo.Models.Request.FilterForumRequest;
 import dev.remo.remo.Models.Response.ReviewCategoryUserViewResponse;
-import dev.remo.remo.Models.Response.ReviewCategoryViewResponse;
 import dev.remo.remo.Models.Response.ReviewUserView;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Forum.ForumRepository;
@@ -84,7 +85,7 @@ public class ForumServiceImpl implements ForumService {
         MotorcycleModel motorcycleModel = motorcycleModelService.getMotorcycleByBrandAndModel(
                 review.getMotorcycleModel().getBrand(),
                 review.getMotorcycleModel().getModel());
-                
+
         review.setUser(currentUser);
         review.setMotorcycleModel(motorcycleModel);
 
@@ -134,7 +135,7 @@ public class ForumServiceImpl implements ForumService {
     public ReviewCategoryUserViewResponse getAllReviewsByMotorcycleModelId(String motorcycleModelId, int page,
             int size) {
         Pageable pageable = PageRequest.of(page, size,
-        Sort.by(Sort.Direction.DESC, "_id"));
+                Sort.by(Sort.Direction.DESC, "_id"));
         MotorcycleModel motorcycleModel = motorcycleModelService
                 .getMotorcycleModelById(motorcycleModelId);
         Page<ReviewUserView> reviewUserViews = forumRepository
@@ -146,18 +147,31 @@ public class ForumServiceImpl implements ForumService {
         return forumMapper.convertToReviewCategoryUserViewResponse(reviewUserViews, motorcycleModel);
     }
 
-    public List<ReviewUserView> getMyReviews() {
+    public Page<ReviewUserView> getMyReviews(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "_id"));
         User currentUser = authService.getCurrentUser();
-        return forumRepository.getReviewsByUserId(currentUser.getId()).stream()
+        Page<ReviewDO> reviewDOPage = forumRepository.getReviewsByUserId(currentUser.getId(), pageable);
+        Map<String, MotorcycleModel> motorcycleModelCache = new HashMap<String, MotorcycleModel>();
+        List<ReviewUserView> reviewUserViews = reviewDOPage.getContent().stream()
                 .map(reviewDO -> {
-                    MotorcycleModel motorcycleModel = motorcycleModelService
-                            .getMotorcycleModelById(reviewDO.getMotorcycleModelId());
+                    MotorcycleModel motorcycleModel = motorcycleModelCache.computeIfAbsent(
+                            reviewDO.getMotorcycleModelId(),
+                            id -> motorcycleModelService.getMotorcycleModelById(id));
+
                     return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, currentUser);
                 }).toList();
+        return new PageImpl<>(reviewUserViews, reviewDOPage.getPageable(), reviewDOPage.getTotalElements());
     }
 
-    public ReviewCategoryViewResponse getAllReview() {
-        return forumMapper.convertToReviewCategoryViewResponse(motorcycleModelService.getMotorcycleList());
+    public Page<ReviewCategoryUserViewResponse> getForumByFilter(FilterForumRequest filterForumRequest, int page,
+            int size) {
+        Page<MotorcycleModel> motorcycleModelPage = motorcycleModelService
+                .getMotorcycleModelByFilter(filterForumRequest, page, size);
+        return new PageImpl<>(
+                forumMapper.convertToReviewCategoryViewResponse(motorcycleModelPage.getContent()),
+                motorcycleModelPage.getPageable(),
+                motorcycleModelPage.getTotalElements());
     }
 
     public Page<ReviewUserView> getAllReview(int page, int size) {

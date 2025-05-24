@@ -73,6 +73,13 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         }
     }
 
+    public Page<MotorcycleListingDO> getListingsById(List<ObjectId> listingId, Pageable pageable) {
+        Query query = new Query(Criteria.where("_id").in(listingId));
+        long total = mongoTemplate.count(query, MotorcycleListingDO.class);
+        query.with(pageable);
+        return new PageImpl<>(mongoTemplate.find(query, MotorcycleListingDO.class), Pageable.unpaged(), total);
+    }
+
     public Optional<MotorcycleListingDO> getListingById(ObjectId id) {
         return motorListingMongoDb.findById(id);
     }
@@ -110,9 +117,16 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         return mongoTemplate.find(query, MotorcycleListingDO.class);
     }
 
-    public Optional<Resource> getMotorcycleListingImageById(String id) {
-        GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(new ObjectId(id));
+    public Optional<Resource> getMotorcycleListingImageById(ObjectId id) {
+        GridFSDownloadStream downloadStream = gridFSBucket.openDownloadStream(id);
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
+    }
+
+    public Page<MotorcycleListingDO> getMotorcycleListingByUserId(String id, Pageable pageable) {
+        Query query = new Query(Criteria.where("userId").is(id));
+        long total = mongoTemplate.count(query, MotorcycleListingDO.class);
+        query.with(pageable);
+        return new PageImpl<>(mongoTemplate.find(query, MotorcycleListingDO.class), pageable, total);
     }
 
     public List<MotorcycleListingDO> getMotorcycleListingByUserId(String id) {

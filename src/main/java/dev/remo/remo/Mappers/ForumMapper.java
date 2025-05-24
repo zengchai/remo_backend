@@ -12,7 +12,6 @@ import dev.remo.remo.Models.Forum.ReviewDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
 import dev.remo.remo.Models.Response.ReviewCategoryUserViewResponse;
-import dev.remo.remo.Models.Response.ReviewCategoryViewResponse;
 import dev.remo.remo.Models.Response.ReviewUserView;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Utils.General.DateUtil;
@@ -63,7 +62,7 @@ public class ForumMapper {
                 .build();
     }
 
-    public ReviewUserView convertReviewDOToUserDTO(ReviewDO reviewDO,MotorcycleModel motorcycleModel, User user) {
+    public ReviewUserView convertReviewDOToUserDTO(ReviewDO reviewDO, MotorcycleModel motorcycleModel, User user) {
 
         ReviewUserView.ReviewUserViewBuilder builder = ReviewUserView.builder();
         if (StringUtils.isNotBlank(user.getName())) {
@@ -93,8 +92,9 @@ public class ForumMapper {
                 .build();
     }
 
-    public ReviewCategoryViewResponse convertToReviewCategoryViewResponse(List<MotorcycleModel> motorcycleModel) {
-        
+    public List<ReviewCategoryUserViewResponse> convertToReviewCategoryViewResponse(
+            List<MotorcycleModel> motorcycleModel) {
+
         List<ReviewCategoryUserViewResponse> reviewCategoryUserViewResponseList = new ArrayList<>();
         for (MotorcycleModel model : motorcycleModel) {
             int reviewsCount = 0;
@@ -102,6 +102,7 @@ public class ForumMapper {
                 reviewsCount = model.getReviews().size();
             }
             ReviewCategoryUserViewResponse reviewCategoryUserViewResponse = ReviewCategoryUserViewResponse.builder()
+                    .id(model.getId())
                     .brand(model.getBrand())
                     .model(model.getModel())
                     .imageId(model.getImageId())
@@ -110,6 +111,6 @@ public class ForumMapper {
             reviewCategoryUserViewResponseList.add(reviewCategoryUserViewResponse);
         }
 
-        return ReviewCategoryViewResponse.builder().reviews(reviewCategoryUserViewResponseList).build();
+        return reviewCategoryUserViewResponseList;
     }
 }

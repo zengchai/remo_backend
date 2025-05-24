@@ -11,6 +11,8 @@ import lombok.Data;
 public class ReviewCategoryUserViewResponse {
 
     @NotBlank
+    private String id;
+    @NotBlank
     private String brand;
     @NotBlank
     private String model;

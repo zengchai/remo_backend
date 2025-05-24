@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
@@ -27,5 +28,7 @@ public interface MotorcycleModelRepository {
     Optional<Resource> getMotorcycleModelImageById(ObjectId id);
 
     Optional<MotorcycleModelDO> findByBrand(String brand);
+
+    Page<MotorcycleModelDO> getMotorcycleModelByFilter(List<Criteria> criteriaList, Pageable pageable);
 
 }

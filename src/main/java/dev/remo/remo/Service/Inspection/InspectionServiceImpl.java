@@ -10,6 +10,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -20,18 +21,21 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import ch.qos.logback.core.util.StringUtil;
 import dev.remo.remo.Mappers.InspectionMapper;
 import dev.remo.remo.Models.Inspection.Inspection;
 import dev.remo.remo.Models.Inspection.InspectionDO;
 import dev.remo.remo.Models.Inspection.Shop.Shop;
 import dev.remo.remo.Models.Inspection.Shop.ShopDO;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
+import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
 import dev.remo.remo.Models.Request.CreateShopRequest;
 import dev.remo.remo.Models.Request.FilterInspectionRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
 import dev.remo.remo.Models.Response.InspectionDetailAdminView;
 import dev.remo.remo.Models.Response.InspectionDetailUserView;
+import dev.remo.remo.Models.Response.ShopResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.Inspection.InspectionRepository;
 import dev.remo.remo.Repository.Shop.ShopRepository;
@@ -44,6 +48,7 @@ import dev.remo.remo.Utils.Exception.InternalServerErrorException;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import dev.remo.remo.Utils.General.ExtInfoUtil;
+import dev.remo.remo.Utils.General.ObjectIdUtil;
 import io.micrometer.common.util.StringUtils;
 
 public class InspectionServiceImpl implements InspectionService {
@@ -160,7 +165,8 @@ public class InspectionServiceImpl implements InspectionService {
                 .getMotorcycleListingById(inspection.getMotorcycleListing().getId());
         authService.validateUser(motorcycleListing.getUser().getId());
 
-        if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority() && !currentUser.getRole().contains(UserRole.ADMIN)) {
+        if (inspection.getStatus().getPriority() >= StatusEnum.COMPLETED.getPriority()
+                && !currentUser.getRole().contains(UserRole.ADMIN)) {
             throw new InvalidStatusException("Inspection already completed: " + id);
         }
 
@@ -193,20 +199,32 @@ public class InspectionServiceImpl implements InspectionService {
         User currentUser = authService.getCurrentUser();
         List<MotorcycleListing> motorcycleListings = motorcycleListingService
                 .getMotorcycleListingByUserId(currentUser.getId());
-        List<Inspection> inspectionList = new ArrayList<>();
+        Map<String, MotorcycleListing> listingMap = motorcycleListings.stream()
+                .collect(Collectors.toMap(MotorcycleListing::getId, m -> m));
         Map<String, ShopDO> shopMap = new HashMap<>();
-        for (MotorcycleListing listing : motorcycleListings) {
-            if (listing.getInspection() != null) {
-                Inspection inspection = getInspectionById(listing.getInspection().getId());
-                inspectionList.add(inspection);
-            }
-        }
+
+        List<Inspection> inspectionList = getInspectionsByListingIds(motorcycleListings.stream()
+                .map(MotorcycleListing::getId).toList()).stream()
+                .map(inspection -> {
+                    MotorcycleListing fullListing = listingMap.get(inspection.getMotorcycleListing().getId());
+                    inspection.setMotorcycleListing(fullListing);
+                    return inspection;
+                })
+                .collect(Collectors.toList());
+
         return inspectionList.stream()
                 .map(inspection -> {
                     ShopDO shopDO = shopMap.computeIfAbsent(inspection.getShop().getId(),
                             id -> getShopById(id.toString()));
                     return inspectionMapper.convertInspectionToDetailView(inspection, shopDO);
                 }).toList();
+
+    }
+
+    public List<Inspection> getInspectionsByListingIds(List<String> listingIds) {
+        return inspectionRepository.getInspectionByListingIds(listingIds).stream()
+                .map(inspectionMapper::convertInspectionDOToInspection)
+                .collect(Collectors.toList());
     }
 
     public Page<InspectionDetailAdminView> getAllInspectionAdminView(int page, int size) {
@@ -280,5 +298,27 @@ public class InspectionServiceImpl implements InspectionService {
         }).collect(Collectors.toList());
         return new PageImpl<InspectionDetailAdminView>(
                 inspectionDetailAdminViews, pageable, inspectionDetailAdminViews.size());
+    }
+
+    public Resource getShopImage(String id) {
+        ObjectId objectId = ObjectIdUtil.validateObjectId(id);
+        return shopRepository.getShopImageById(objectId)
+                .orElseThrow(() -> new NotFoundResourceException("Shop image not found for ID: " + id));
+    }
+
+    public List<ShopResponse> getAllShops() {
+        List<ShopDO> shopDOList = shopRepository.getAllShops();
+
+        return shopDOList.stream()
+                .map(shopDO -> {
+                    return ShopResponse.builder()
+                            .id(shopDO.getId().toString())
+                            .name(shopDO.getName())
+                            .address(shopDO.getAddress())
+                            .mapUrl(shopDO.getMapUrl())
+                            .imageId(shopDO.getImageId())
+                            .build();
+                }).collect(Collectors.toList());
+
     }
 }

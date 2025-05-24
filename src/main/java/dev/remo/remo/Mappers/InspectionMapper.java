@@ -104,10 +104,15 @@ public class InspectionMapper {
                                                         inspection.getVehicleComponentMap()));
                 }
 
-                return inspectionDetailUserViewBuilder.date(inspection.getDate())
-                                .motorcycleListingId(inspection.getMotorcycleListing().getId())
+                return inspectionDetailUserViewBuilder
+                                .id(inspection.getId())
+                                .date(inspection.getDate())
+                                .brand(inspection.getMotorcycleListing().getMotorcycleModel().getBrand())
+                                .model(inspection.getMotorcycleListing().getMotorcycleModel().getModel())
                                 .shopName(shop.getName())
-                                .mapUrl(shop.getMapUrl())
+                                .address(shop.getAddress())
+                                .shopImageId(shop.getImageId())
+                                .time(inspection.getTime())
                                 .status(inspection.getStatus().getCode())
                                 .extInfo(inspection.getExtInfo() != null ? inspection.getExtInfo() : null)
                                 .build();

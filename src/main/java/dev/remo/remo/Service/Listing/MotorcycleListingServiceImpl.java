@@ -19,7 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +31,7 @@ import dev.remo.remo.Models.Request.FilterListingRequest;
 import dev.remo.remo.Models.Request.PredictPriceRequest;
 import dev.remo.remo.Models.Response.MotorcycleListingDetailUserView;
 import dev.remo.remo.Models.Response.MotorcycleListingUserView;
+import dev.remo.remo.Models.Response.MotorcycleModelList;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Repository.MotorcycleListing.MotorListingRepository;
 import dev.remo.remo.Service.Ai.AiChatbotService;
@@ -43,6 +43,7 @@ import dev.remo.remo.Utils.Enum.UserRole;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import dev.remo.remo.Utils.General.ExtInfoUtil;
+import dev.remo.remo.Utils.General.ObjectIdUtil;
 import io.micrometer.common.util.StringUtils;
 
 public class MotorcycleListingServiceImpl implements MotorcycleListingService {
@@ -168,7 +169,8 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     }
 
     public MotorcycleListing getMotorcycleListingById(String listingId) {
-        MotorcycleListingDO motorcycleListingDO = motorListingRepository.getListingById(new ObjectId(listingId))
+        MotorcycleListingDO motorcycleListingDO = motorListingRepository
+                .getListingById(ObjectIdUtil.validateObjectId(listingId))
                 .orElseThrow(() -> new NotFoundResourceException("Listing is not found"));
         return motorcycleListingMapper.convertMotorcycleListingDOToModel(motorcycleListingDO);
     }
@@ -194,51 +196,68 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     public Page<MotorcycleListingUserView> getMyMotorcycleListing(int page, int size) {
         User currentUser = authService.getCurrentUser();
         Pageable pageRequest = PageRequest.of(page, size);
-        List<MotorcycleListingDO> motorcycleListingDOList = motorListingRepository
-                .getMotorcycleListingByUserId(currentUser.getId());
+        Map<String, MotorcycleModel> motorcycleModelMap = new HashMap<String, MotorcycleModel>();
+        Page<MotorcycleListingDO> motorcycleListingDOList = motorListingRepository
+                .getMotorcycleListingByUserId(currentUser.getId(), pageRequest);
 
-        List<MotorcycleListingUserView> motorcycleListingUserViewList = motorcycleListingDOList.stream()
-                .map(motorcycleListingDO -> {
-                    MotorcycleModel motorcycleModel = motorcycleModelService
-                            .getMotorcycleModelById(motorcycleListingDO.getMotorcycleId());
-                    return motorcycleListingMapper.convertToUserDTOView(motorcycleListingDO, motorcycleModel);
+        List<MotorcycleListingUserView> motorcycleListingUserViewList = motorcycleListingDOList.getContent()
+                .stream()
+                .map(listingDO -> {
+
+                    MotorcycleModel mm = motorcycleModelMap.computeIfAbsent(
+                            listingDO.getMotorcycleId(),
+                            id -> motorcycleModelService.getMotorcycleModelById(id));
+
+                    return motorcycleListingMapper.convertToUserDTOView(listingDO, mm);
                 })
                 .collect(Collectors.toList());
-
-        return new PageImpl<>(motorcycleListingUserViewList, pageRequest, motorcycleListingDOList.size());
+        return new PageImpl<>(motorcycleListingUserViewList, motorcycleListingDOList.getPageable(),
+                motorcycleListingDOList.getTotalElements());
     }
 
     public Page<MotorcycleListingUserView> getMyFavouriteListings(int page, int size) {
         User currentUser = authService.getCurrentUser();
         Pageable pageRequest = PageRequest.of(page, size);
-        List<MotorcycleListingDO> motorcycleListingDOList = new ArrayList<>();
-
+        Map<String, MotorcycleModel> motorcycleModelMap = new HashMap<String, MotorcycleModel>();
+        List<ObjectId> listingIds = currentUser.getFavouriteListingIds()
+                .stream()
+                .map(ObjectId::new)
+                .collect(Collectors.toList());
         if (currentUser.getFavouriteListingIds() == null || currentUser.getFavouriteListingIds().isEmpty()) {
             return new PageImpl<>(new ArrayList<>(), pageRequest, 0);
         }
 
-        for (String id : currentUser.getFavouriteListingIds()) {
-            MotorcycleListingDO motorcycleListingDO = motorListingRepository
-                    .getListingById(new ObjectId(id))
-                    .orElseThrow(() -> new NotFoundResourceException("Listing is not found"));
-            motorcycleListingDOList.add(motorcycleListingDO);
-        }
+        Page<MotorcycleListingDO> motorcycleListingDO = motorListingRepository.getListingsById(listingIds, pageRequest);
 
-        List<MotorcycleListingUserView> motorcycleListingUserViewList = motorcycleListingDOList.stream()
-                .map(motorcycleListingDO -> {
-                    MotorcycleModel motorcycleModel = motorcycleModelService
-                            .getMotorcycleModelById(motorcycleListingDO.getMotorcycleId());
-                    return motorcycleListingMapper.convertToUserDTOView(motorcycleListingDO, motorcycleModel);
+        List<MotorcycleListingUserView> motorcycleListingUserViewList = motorcycleListingDO.getContent()
+                .stream()
+                .map(listingDO -> {
+
+                    MotorcycleModel mm = motorcycleModelMap.computeIfAbsent(
+                            listingDO.getMotorcycleId(),
+                            id -> motorcycleModelService.getMotorcycleModelById(id));
+
+                    return motorcycleListingMapper.convertToUserDTOView(listingDO, mm);
                 })
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(motorcycleListingUserViewList, pageRequest, motorcycleListingDOList.size());
+        return new PageImpl<>(motorcycleListingUserViewList, motorcycleListingDO.getPageable(),
+                motorcycleListingDO.getTotalElements());
     }
 
     public List<MotorcycleListing> getMotorcycleListingByUserId(String userId) {
-        List<MotorcycleListingDO> motorcycleListingDOList = motorListingRepository.getMotorcycleListingByUserId(userId);
-        return motorcycleListingDOList.stream()
+        List<MotorcycleListing> motorcycleListings = motorListingRepository.getMotorcycleListingByUserId(userId)
+                .stream()
                 .map(motorcycleListingMapper::convertMotorcycleListingDOToModel)
+                .collect(Collectors.toList());
+        Map<String, MotorcycleModel> motorcycleModelMap = new HashMap<String, MotorcycleModel>();
+        return motorcycleListings.stream()
+                .peek(listing -> {
+                    MotorcycleModel motorcycleModel = motorcycleModelMap.computeIfAbsent(
+                            listing.getMotorcycleModel().getId(),
+                            id -> motorcycleModelService.getMotorcycleModelById(id));
+                    listing.setMotorcycleModel(motorcycleModel);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -287,7 +306,8 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     }
 
     public Resource getMotorcycleListingImageById(String id) {
-        return motorListingRepository.getMotorcycleListingImageById(id)
+        ObjectId objectId = ObjectIdUtil.validateObjectId(id);
+        return motorListingRepository.getMotorcycleListingImageById(objectId)
                 .orElseThrow(() -> new NotFoundResourceException("Image not found"));
     }
 
@@ -334,12 +354,13 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
             criteriaList.add(Criteria.where("price").lte(maxPrice));
         }
 
-        if (StringUtils.isNotBlank(status)) {
-            if (authService.getCurrentUser().getRole().contains(UserRole.ADMIN)) {
+        if (authService.getCurrentUser().getRole().contains(UserRole.ADMIN)) {
+
+            if (StringUtils.isNotBlank(status)) {
                 criteriaList.add(Criteria.where("status").is(StatusEnum.fromCode(status).getCode()));
-            } else {
-                criteriaList.add(Criteria.where("status").is(StatusEnum.ACTIVE.getCode()));
             }
+        } else {
+            criteriaList.add(Criteria.where("status").is(StatusEnum.ACTIVE.getCode()));
         }
 
         Page<MotorcycleListingDO> motorcycleListingPage = motorListingRepository
@@ -365,5 +386,25 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
     public Boolean favouriteMotorcycleListing(String motorcycleListingId) {
         MotorcycleListing motorcycleListing = getMotorcycleListingById(motorcycleListingId);
         return userService.favouriteMotorcycleListing(motorcycleListing.getId());
+    }
+
+    public MotorcycleModelList getMotorcycleModelList() {
+        List<MotorcycleModel> motorcycleModels = motorcycleModelService.getMotorcycleList();
+        Map<String, Map<String, String>> motorcycleModelMap = new HashMap<>();
+
+        for (MotorcycleModel motorcycleModel : motorcycleModels) {
+            String brand = motorcycleModel.getBrand();
+            String model = motorcycleModel.getModel();
+            String id = motorcycleModel.getId();
+
+            if (!motorcycleModelMap.containsKey(id)) {
+                motorcycleModelMap.put(id, new HashMap<>());
+            }
+            motorcycleModelMap.get(id).put(brand, model);
+        }
+
+        return MotorcycleModelList.builder()
+                .motorcycleModels(motorcycleModelMap)
+                .build();
     }
 }

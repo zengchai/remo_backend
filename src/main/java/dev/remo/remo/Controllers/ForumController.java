@@ -9,12 +9,14 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Request.CreateOrUpdateReviewRequest;
+import dev.remo.remo.Models.Request.FilterForumRequest;
 import dev.remo.remo.Models.Response.GeneralResponse;
 import dev.remo.remo.Service.Forum.ForumService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,7 +55,7 @@ public class ForumController {
 
         }
 
-        @GetMapping("/motorcyclemodel/get/{id}")
+        @GetMapping("/motorcyclemodel/get/{id}/{page}/{size}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> getReviewByMotorcycleModelId(
                         @PathVariable String id,
@@ -79,25 +81,29 @@ public class ForumController {
                                 .build());
         }
 
-        @GetMapping("/getallreviews")
+        @PostMapping("/filter/{page}/{size}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-        public ResponseEntity<?> getAllReview(HttpServletRequest http) {
+        public ResponseEntity<?> getForumByFilter(@RequestBody FilterForumRequest request, @PathVariable int page,
+                        @PathVariable int size, HttpServletRequest http) {
 
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Fetched successfully")
-                                .data(forumService.getAllReview())
+                                .data(forumService.getForumByFilter(request, page, size))
                                 .build());
         }
 
-        @GetMapping("/getmyreviews")
+        @GetMapping("/getmyreviews/{page}/{size}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-        public ResponseEntity<?> getMyReview(HttpServletRequest http) {
+        public ResponseEntity<?> getMyReview(
+                        @PathVariable int page,
+                        @PathVariable int size, HttpServletRequest http) {
 
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Fetched successfully")
-                                .data(forumService.getMyReviews())
+                                .data(forumService.getMyReviews(page, size))
                                 .build());
         }
+
         @GetMapping("/images/{id}")
         public ResponseEntity<Resource> getForumImage(@PathVariable String id) {
 

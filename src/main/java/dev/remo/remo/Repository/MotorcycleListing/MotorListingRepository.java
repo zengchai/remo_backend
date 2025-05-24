@@ -9,7 +9,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
@@ -17,6 +16,8 @@ import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 public interface MotorListingRepository {
 
     MotorcycleListingDO createOrUpdateListing(MotorcycleListingDO listing);
+
+    Page<MotorcycleListingDO> getListingsById(List<ObjectId> listingId, Pageable pageable);
 
     Optional<MotorcycleListingDO> getListingById(ObjectId listingId);
 
@@ -34,7 +35,9 @@ public interface MotorListingRepository {
 
     List<MotorcycleListingDO> getAllListingsForUser(Pageable pageable);
 
-    Optional<Resource> getMotorcycleListingImageById(String id);
+    Optional<Resource> getMotorcycleListingImageById(ObjectId id);
+
+    Page<MotorcycleListingDO> getMotorcycleListingByUserId(String id, Pageable pageable);
 
     List<MotorcycleListingDO> getMotorcycleListingByUserId(String id);
 

@@ -3,6 +3,7 @@ package dev.remo.remo.Service.Inspection;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +14,7 @@ import dev.remo.remo.Models.Request.FilterInspectionRequest;
 import dev.remo.remo.Models.Request.UpdateInspectionRequest;
 import dev.remo.remo.Models.Response.InspectionDetailAdminView;
 import dev.remo.remo.Models.Response.InspectionDetailUserView;
+import dev.remo.remo.Models.Response.ShopResponse;
 
 public interface InspectionService {
     void createInspection(CreateInspectionRequest createOrUpdateInspectionRequest);
@@ -26,6 +28,10 @@ public interface InspectionService {
     void deleteInspection(String id);
 
     Inspection getInspectionById(String id);
+
+    List<ShopResponse> getAllShops();
+    
+    Resource getShopImage(String id);
 
     List<InspectionDetailUserView> getMyInspection();
 

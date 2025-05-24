@@ -1,6 +1,5 @@
 package dev.remo.remo.Controllers;
 
-
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +39,10 @@ public class ListingContorller {
         public ResponseEntity<?> predictPrice(@Valid @RequestBody PredictPriceRequest predictRequest,
                         HttpServletRequest http) {
                 String response = motorcycleListingService.predictPrice(predictRequest);
-                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("").message(response).build());
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("").data(response).build());
         }
 
-        @PostMapping("/create")
+        @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> createListing(
                         @RequestPart("metadata") @Valid CreateOrUpdateListingRequest request,
@@ -81,7 +80,7 @@ public class ListingContorller {
                         @RequestBody Map<String, String> body,
                         HttpServletRequest http) {
 
-                motorcycleListingService.updateMotorcycleListingStatus(id, body.get("status"),  body.get("remark"));
+                motorcycleListingService.updateMotorcycleListingStatus(id, body.get("status"), body.get("remark"));
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder()
@@ -116,7 +115,7 @@ public class ListingContorller {
                                 .build());
         }
 
-        @PutMapping("/getmyfavourite/{page}/{size}")
+        @GetMapping("/getmyfavourite/{page}/{size}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> getMyFavouriteListings(
                         @PathVariable int page,
@@ -138,6 +137,16 @@ public class ListingContorller {
                                 .success(true)
                                 .error("")
                                 .data(motorcycleListingService.getMotorcycleListingDetailUserView(id))
+                                .build());
+        }
+        @GetMapping("/motorcyclemodel/getall")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getMotorcycleModelList(HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder()
+                                .success(true)
+                                .error("")
+                                .data(motorcycleListingService.getMotorcycleModelList())
                                 .build());
         }
 
@@ -187,21 +196,22 @@ public class ListingContorller {
                         @RequestPart(value = "file", required = true) MultipartFile image,
                         HttpServletRequest http) {
 
-                motorcycleListingService.createMotorcycleModel(brand,model, image);
+                motorcycleListingService.createMotorcycleModel(brand, model, image);
 
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Created successfully").build());
         }
 
-    @PutMapping("/favourite/{listingId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<?> favouriteListing(@PathVariable String listingId, HttpServletRequest http) {
-        
-        String message = motorcycleListingService.favouriteMotorcycleListing(listingId) ? "Unfavourite successfully"
-                : "Favourite successfully";
+        @PutMapping("/favourite/{listingId}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> favouriteListing(@PathVariable String listingId, HttpServletRequest http) {
 
-        return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
-                .message(message)
-                .build());
-    }
+                String message = motorcycleListingService.favouriteMotorcycleListing(listingId)
+                                ? "Unfavourite successfully"
+                                : "Favourite successfully";
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message(message)
+                                .build());
+        }
 }

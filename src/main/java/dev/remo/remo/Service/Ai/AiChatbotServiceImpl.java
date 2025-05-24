@@ -21,9 +21,16 @@ public class AiChatbotServiceImpl implements AiChatbotService {
 
     public String buildPrompt(PredictPriceRequest request) {
         return String.format(
-                "Generate a realistic Malaysia market price (in MYR) for a used (second hand) motorcycle based on the following details. "
-                        + "Only return the price as a number without any explanation or extra text.\n" +
-                        "- Brand: %s\n- Model: %s\n- Manufactured Year: %s\n- Mileage: %s\n- Cubic Capacity: %s\n- Transmission: %s",
+                "You are an expert in Malaysian motorcycle resale pricing. Based on current market trends in Malaysia, predict the fair resale price in MYR for the following used motorcycle. "
+                        +
+                        "Consider all provided attributes carefully to determine a realistic market value. " +
+                        "Return only the price as a number without any currency symbol, explanation, or extra text.\n" +
+                        "- Brand: %s\n" +
+                        "- Model: %s\n" +
+                        "- Manufactured Year: %s\n" +
+                        "- Mileage (in km): %s\n" +
+                        "- Engine Capacity (cc): %s\n" +
+                        "- Transmission Type: %s",
                 request.getBrand(),
                 request.getModel(),
                 request.getManufacturedYear(),

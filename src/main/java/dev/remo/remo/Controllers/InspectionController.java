@@ -3,6 +3,8 @@ package dev.remo.remo.Controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -152,6 +154,18 @@ public class InspectionController {
 
         }
 
+        @GetMapping("/getallshop")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getAllShop(
+                        HttpServletRequest http) {
+
+                return ResponseEntity.ok(
+                                GeneralResponse.builder().success(true).error("")
+                                                .data(inspectionService.getAllShops())
+                                                .build());
+
+        }
+
         @PostMapping("/filter/{page}/{size}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> getAllInspectionByFilters(
@@ -162,8 +176,17 @@ public class InspectionController {
 
                 return ResponseEntity.ok(
                                 GeneralResponse.builder().success(true).error("")
-                                                .data(inspectionService.getAllInspectionByFilter(inspectionFilterRequest,page, size))
+                                                .data(inspectionService.getAllInspectionByFilter(
+                                                                inspectionFilterRequest, page, size))
                                                 .build());
 
+        }
+
+        @GetMapping("/shop/images/{id}")
+        public ResponseEntity<Resource> getImage(@PathVariable String id) {
+
+                return ResponseEntity.ok()
+                                .contentType(MediaType.IMAGE_JPEG)
+                                .body(inspectionService.getShopImage(id));
         }
 }

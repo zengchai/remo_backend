@@ -12,6 +12,7 @@ import dev.remo.remo.Models.Request.FilterListingRequest;
 import dev.remo.remo.Models.Request.PredictPriceRequest;
 import dev.remo.remo.Models.Response.MotorcycleListingDetailUserView;
 import dev.remo.remo.Models.Response.MotorcycleListingUserView;
+import dev.remo.remo.Models.Response.MotorcycleModelList;
 
 public interface MotorcycleListingService {
 
@@ -45,4 +46,6 @@ public interface MotorcycleListingService {
     Page<MotorcycleListingUserView> filterListings(FilterListingRequest filterRequest, int page, int size);
 
     Boolean favouriteMotorcycleListing(String motorcycleListingId);
+
+    MotorcycleModelList getMotorcycleModelList();
 }

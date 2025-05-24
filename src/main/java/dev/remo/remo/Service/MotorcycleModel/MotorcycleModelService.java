@@ -3,25 +3,29 @@ package dev.remo.remo.Service.MotorcycleModel;
 import java.util.List;
 
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
+import dev.remo.remo.Models.Request.FilterForumRequest;
 
 public interface MotorcycleModelService {
 
-    public List<MotorcycleModel> getMotorcycleList();
+     List<MotorcycleModel> getMotorcycleList();
 
-    public MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model);
+     Page<MotorcycleModel> getMotorcycleModelByFilter(FilterForumRequest filterForumRequest, int page, int size);
 
-    public MotorcycleModel getMotorcycleByBrand(String brand);
+     MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model);
 
-    public MotorcycleModel getMotorcycleModelById(String id);
+     MotorcycleModel getMotorcycleByBrand(String brand);
 
-    public Resource getMotorcycleModelImageById(String id);
+     MotorcycleModel getMotorcycleModelById(String id);
 
-    public void createMotorcycleModel(String brand, String model, MultipartFile image);
+     Resource getMotorcycleModelImageById(String id);
 
-    public void updateMotorcycleModelReviewList(MotorcycleModel motorcycleModel);
+     void createMotorcycleModel(String brand, String model, MultipartFile image);
 
-    public void removeReviewIdListById(String modelId, String reviewId);
+     void updateMotorcycleModelReviewList(MotorcycleModel motorcycleModel);
+
+     void removeReviewIdListById(String modelId, String reviewId);
 }

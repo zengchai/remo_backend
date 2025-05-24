@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -21,6 +22,7 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 
+import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
@@ -91,5 +93,16 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
         Query query = new Query(Criteria.where("brand").is(brand));
         MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
         return Optional.ofNullable(result);
+    }
+
+    public Page<MotorcycleModelDO> getMotorcycleModelByFilter(List<Criteria> criteriaList, Pageable pageable) {
+        Query query = new Query();
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+        }
+        long total = mongoTemplate.count(query, MotorcycleModelDO.class);
+        query.with(pageable);
+        return new PageImpl<>(mongoTemplate.find(query, MotorcycleModelDO.class), pageable, total);
     }
 }

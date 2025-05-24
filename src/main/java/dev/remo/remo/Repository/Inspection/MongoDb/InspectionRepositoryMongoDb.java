@@ -55,8 +55,13 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         inspectionMongoDb.deleteById(inspectionId);
     }
 
-    public List<InspectionDO> getInspectionStatusList(List<ObjectId> listingId) {
-        return inspectionMongoDb.findAllById(listingId);
+    public List<InspectionDO> getInspectionStatusList(List<ObjectId> ids) {
+        return inspectionMongoDb.findAllById(ids);
+    }
+
+    public List<InspectionDO> getInspectionByListingIds(List<String> listingIds) {
+        Query query = new Query(Criteria.where("motorcycleListingId").in(listingIds));
+        return mongoTemplate.find(query, InspectionDO.class);
     }
 
     public List<InspectionDO> getAllInspection(Query query) {

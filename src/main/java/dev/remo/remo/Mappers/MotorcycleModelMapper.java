@@ -40,7 +40,9 @@ public class MotorcycleModelMapper {
         return motorcycleModelBuilder
                 .id(motorcycleModelDO.getId().toString())
                 .brand(motorcycleModelDO.getBrand())
-                .model(motorcycleModelDO.getModel()).build();
+                .model(motorcycleModelDO.getModel())
+                .imageId(motorcycleModelDO.getImageId())
+                .build();
     }
 
     public MotorcycleModelDO convertModelToModelDO(MotorcycleModel motorcycleModel) {
@@ -67,14 +69,14 @@ public class MotorcycleModelMapper {
 
     }
 
-    public Page<MotorcycleModel> convertModelDOToModel(Page<MotorcycleModelDO> motorcycleModelDOPage,
-            Pageable pageable) {
+    public Page<MotorcycleModel> convertModelDOToModel(Page<MotorcycleModelDO> motorcycleModelDOPage) {
         List<MotorcycleModel> motorcycleModels = motorcycleModelDOPage.getContent()
                 .stream()
                 .map(this::convertModelDOToModel)
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(motorcycleModels, pageable, motorcycleModelDOPage.getTotalElements());
+        return new PageImpl<>(motorcycleModels, motorcycleModelDOPage.getPageable(),
+                motorcycleModelDOPage.getTotalElements());
     }
 
 }
