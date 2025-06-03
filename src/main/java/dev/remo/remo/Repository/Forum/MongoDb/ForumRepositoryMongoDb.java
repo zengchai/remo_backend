@@ -99,4 +99,9 @@ public class ForumRepositoryMongoDb implements ForumRepository {
     public Page<ReviewDO> getAllReviewsByPage(Pageable pageable) {
         return forumMongoDb.findAll(pageable);
     }
+
+    public List<ReviewDO> getReviewsByUserId(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        return mongoTemplate.find(query, ReviewDO.class);
+    }
 }

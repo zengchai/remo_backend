@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import dev.remo.remo.Models.Request.SignUpRequest;
 import dev.remo.remo.Models.Request.UpdateUserRequest;
 import dev.remo.remo.Models.Response.JwtResponse;
+import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Utils.Enum.UserRole;
@@ -19,7 +20,7 @@ public class UserMapper {
     public User convertUpdateRequestUserToUser(UpdateUserRequest updateUserRequest) {
         return User.builder()
                 .name(updateUserRequest.getName())
-                .phoneNum(updateUserRequest.getPhoneNum())
+                .phoneNum(updateUserRequest.getPhoneNumber())
                 .nric(updateUserRequest.getNric())
                 .dob(updateUserRequest.getDob())
                 .build();
@@ -66,16 +67,18 @@ public class UserMapper {
             userBuilder.name(userDO.getName());
             userBuilder.nric(userDO.getNric());
             userBuilder.phoneNum(userDO.getPhoneNum());
-            userBuilder.imageId(userDO.getImageId());
             userBuilder.dob(userDO.getDob());
         }
 
+        if(StringUtils.isNotBlank(userDO.getImageId())) {
+            userBuilder.imageId(userDO.getImageId());
+        }
+        
         if (StringUtils.isNotBlank(userDO.getResetToken())) {
             userBuilder.resetToken(userDO.getResetToken())
                     .resetTokenExpiry(userDO.getResetTokenExpiry());
         }
 
-        
         return userBuilder.id(userDO.getId().toString())
                 .password(userDO.getPassword())
                 .email(userDO.getEmail())
@@ -103,4 +106,24 @@ public class UserMapper {
                 .build();
     }
 
+    public UserProfileResponse convertToUserProfileResponse(User user) {
+        UserProfileResponse.UserProfileResponseBuilder builder = UserProfileResponse.builder();
+        if (StringUtils.isNotBlank(user.getName())) {
+            builder.name(user.getName());
+        }
+        if (StringUtils.isNotBlank(user.getPhoneNum())) {
+            builder.phoneNumber(user.getPhoneNum());
+        }
+        if (StringUtils.isNotBlank(user.getDob())) {
+            builder.dob(user.getDob());
+        }
+        if (StringUtils.isNotBlank(user.getImageId())) {
+            builder.imageId(user.getImageId());
+        }
+
+        return builder
+                .id(user.getId())
+                .email(user.getEmail())
+                .build();
+    }
 }

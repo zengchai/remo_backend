@@ -31,4 +31,6 @@ public interface ForumService {
 
     ReviewCategoryUserViewResponse getAllReviewsByMotorcycleModelId(String motorcycleModelId, int page,
             int size);
+
+    void deleteReviewByUserId(String userId);
 }

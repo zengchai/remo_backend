@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Mappers.UserMapper;
 import dev.remo.remo.Models.Request.UpdateUserRequest;
+import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Repository.User.UserRepository;
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
         updatedUser.setId(existingUser.getId());
 
         if (image != null && !image.isEmpty()) {
-            if (!StringUtils.isBlank(existingUser.getImageId())) {
+            if (StringUtils.isNotBlank(existingUser.getImageId())) {
                 userRepository.deleteImage(new ObjectId(existingUser.getImageId()));
             }
             String imageId = userRepository.uploadImage(image);
@@ -55,11 +56,12 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String id) {
         User user = authService.validateUser(id);
 
+        userRepository.deleteImage(new ObjectId(user.getImageId()));
+        logger.info("Image deleted: " + user.getImageId());
+        
         userRepository.deleteUser(new ObjectId(user.getId()));
         logger.info("User deleted: " + user.getId());
 
-        userRepository.deleteImage(new ObjectId(user.getImageId()));
-        logger.info("Image deleted: " + user.getImageId());
     }
 
     public Boolean favouriteMotorcycleListing(String motorcycleListingId) {
@@ -96,4 +98,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundResourceException("Image not found"));
     }
 
+    public UserProfileResponse getMyProfile() {
+        User user = authService.getCurrentUser();
+        return userMapper.convertToUserProfileResponse(user);
+    }
 }

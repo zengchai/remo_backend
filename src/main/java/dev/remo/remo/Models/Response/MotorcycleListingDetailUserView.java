@@ -26,5 +26,9 @@ public class MotorcycleListingDetailUserView {
     private String phoneNumber;
     private String status;
     private Boolean isFavourite;
+    private String remark;
+    private String createdAt;
+    private String updatedBy;
+    private String updatedAt;
     private List<String> imagesIds;
 }

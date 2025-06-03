@@ -28,7 +28,7 @@ public interface AuthService extends UserDetailsService {
 
     void initiateResetPassword(String email);
 
-    void verifyResetToken(String token);
+    void verifyResetToken(String email,String token);
 
-    void resetPassword(String token, String newPassword);
+    void resetPassword(String email, String token, String newPassword);
 }

@@ -29,6 +29,7 @@ import dev.remo.remo.Models.Inspection.Shop.Shop;
 import dev.remo.remo.Models.Inspection.Shop.ShopDO;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
+import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Models.Request.CreateInspectionRequest;
 import dev.remo.remo.Models.Request.CreateShopRequest;
 import dev.remo.remo.Models.Request.FilterInspectionRequest;
@@ -41,6 +42,7 @@ import dev.remo.remo.Repository.Inspection.InspectionRepository;
 import dev.remo.remo.Repository.Shop.ShopRepository;
 import dev.remo.remo.Service.Auth.AuthService;
 import dev.remo.remo.Service.Listing.MotorcycleListingService;
+import dev.remo.remo.Service.MotorcycleModel.MotorcycleModelService;
 import dev.remo.remo.Utils.Enum.StatusEnum;
 import dev.remo.remo.Utils.Enum.UserRole;
 import dev.remo.remo.Utils.Enum.VehicleComponentEnum;
@@ -66,6 +68,9 @@ public class InspectionServiceImpl implements InspectionService {
 
     @Autowired
     MotorcycleListingService motorcycleListingService;
+
+    @Autowired
+    MotorcycleModelService motorcycleModelService;
 
     @Autowired
     InspectionMapper inspectionMapper;
@@ -176,7 +181,6 @@ public class InspectionServiceImpl implements InspectionService {
     }
 
     public Map<String, String> getInspectionStatusByIds(List<String> id) {
-        logger.info("Getting inspection status for IDs: " + id);
         List<ObjectId> objectIds = id.stream().map(ObjectId::new).toList();
         List<InspectionDO> inspectionDOList = inspectionRepository.getInspectionStatusList(objectIds);
         if (inspectionDOList.isEmpty()) {
@@ -191,6 +195,13 @@ public class InspectionServiceImpl implements InspectionService {
     public InspectionDetailUserView getInspectionDetailUserViewById(String id) {
         logger.info("Getting inspection detail view for ID: " + id);
         Inspection inspection = getInspectionById(id);
+        MotorcycleListing motorcycleListing = motorcycleListingService
+                .getMotorcycleListingById(inspection.getMotorcycleListing().getId());
+        MotorcycleModel motorcycleModel = motorcycleModelService
+                .getMotorcycleModelById(motorcycleListing.getMotorcycleModel().getId());
+        motorcycleListing.setMotorcycleModel(motorcycleModel);
+        inspection.setMotorcycleListing(motorcycleListing);
+
         ShopDO shopDO = getShopById(inspection.getShop().getId());
         return inspectionMapper.convertInspectionToDetailView(inspection, shopDO);
     }
@@ -320,5 +331,30 @@ public class InspectionServiceImpl implements InspectionService {
                             .build();
                 }).collect(Collectors.toList());
 
+    }
+
+    public void deleteInspectionByUserId(String userId) {
+
+        User currentUser = authService.validateUser(userId);
+        List<MotorcycleListing> motorcycleListings = motorcycleListingService
+                .getMotorcycleListingByUserId(currentUser.getId());
+        if (motorcycleListings.isEmpty()) {
+            logger.info("No motorcycle listings found for user: " + userId);
+            return;
+        }
+
+        List<String> listingIds = motorcycleListings.stream()
+                .map(MotorcycleListing::getId).toList();
+        List<Inspection> inspections = getInspectionsByListingIds(listingIds);
+
+        if (inspections.isEmpty()) {
+            logger.info("No inspections found for user: " + userId);
+            return;
+        }
+
+        for (Inspection inspection : inspections) {
+            deleteInspection(inspection.getId());
+        }
+        logger.info("Deleted all inspections for user: " + userId);
     }
 }

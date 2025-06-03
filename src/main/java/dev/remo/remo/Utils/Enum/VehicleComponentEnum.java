@@ -6,46 +6,47 @@ import java.util.stream.Collectors;
 
 public enum VehicleComponentEnum {
     // Identity
-    VIN_VERIFICATION("VIN Verification", "identity"),
-    REGISTRATION("Registration", "identity"),
-    OWNERSHIP("Ownership", "identity"),
+    VIN_VERIFICATION("VIN Verification", "Identity"),
+    REGISTRATION("Registration", "Identity"),
+    OWNERSHIP("Ownership", "Identity"),
 
     // Electrical
-    BATTERY("Battery", "electrical"),
-    LIGHTS("Lights", "electrical"),
-    WIRING("Wiring", "electrical"),
-    INSTRUMENTS("Instruments", "electrical"),
+    BATTERY("Battery", "Electrical"),
+    LIGHTS("Lights", "Electrical"),
+    WIRING("Wiring", "Electrical"),
+    INSTRUMENTS("Instruments", "Electrical"),
 
     // Mechanical
-    BRAKES("Brakes", "mechanical"),
-    SUSPENSION("Suspension", "mechanical"),
-    TRANSMISSION("Transmission", "mechanical"),
+    BRAKES("Brakes", "Mechanical"),
+    SUSPENSION("Suspension", "Mechanical"),
+    TRANSMISSION("Transmission", "Mechanical"),
+    CHAIN_BELT_DRIVE("Chain/Belt Drive", "Mechanical"),
 
     // Safety
-    SEAT_BELTS("Seat Belts", "safety"),
-    AIRBAGS("Airbags", "safety"),
-    TIRES("Tires", "safety"),
+    TIRES("Tires", "Safety"),
+    HORN("Horn", "Safety"),
+    MIRRORS("Mirrors", "Safety"),
 
     // Engine
-    OIL_LEVEL("Oil Level", "engine"),
-    COOLANT("Coolant", "engine"),
-    BELTS("Belts", "engine"),
-    NOISE("Noise", "engine"),
+    OIL_LEVEL("Oil Level", "Engine"),
+    COOLANT("Coolant", "Engine"),
+    BELTS("Belts", "Engine"),
+    NOISE("Noise", "Engine"),
 
-    // Comfort
-    AC_HEATING("AC/Heating", "comfort"),
-    SEATS("Seats", "comfort"),
-    WINDOWS("Windows", "comfort"),
+    // Comfort/Controls
+    SEAT("Seat", "Comfort/Controls"),
+    HANDLEBAR("Handlebar/Grips", "Comfort/Controls"),
+    FOOTPEGS("Foot Pegs", "Comfort/Controls"),
+    CONTROLS("Controls (Levers/Pedals)", "Comfort/Controls"),
 
-    // Accident History
-    BODY_PANELS("Body Panels", "accidentHistory"),
-    FRAME("Frame", "accidentHistory"),
-    PAINT("Paint", "accidentHistory"),
+    // Body/Frame
+    BODY_PANELS("Body Panels", "Body/Frame"),
+    FRAME("Frame", "Body/Frame"),
+    PAINT("Paint", "Body/Frame"),
 
     // Appearance
-    EXTERIOR("Exterior", "appearance"),
-    INTERIOR("Interior", "appearance"),
-    UPHOLSTERY("Upholstery", "appearance");
+    EXTERIOR("Exterior", "Appearance"),
+    ACCESSORIES("Accessories", "Appearance");
 
     private final String displayName;
     private final String category;

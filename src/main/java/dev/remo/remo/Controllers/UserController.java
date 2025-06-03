@@ -5,6 +5,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +27,7 @@ public class UserController {
         @Autowired
         UserService userService;
 
-        @PutMapping("/update/{id}")
+        @PostMapping("/update/{id}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> updateUser(
                         @PathVariable String id,
@@ -42,7 +43,19 @@ public class UserController {
 
         }
 
-        @PostMapping("/delete/{id}")
+        @GetMapping("/getmyprofile")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getMyProfile(
+                        HttpServletRequest http) {
+
+                return ResponseEntity
+                                .ok(GeneralResponse.builder().success(true).error("").message("Fetched successfully")
+                                                .data(userService.getMyProfile())
+                                                .build());
+
+        }
+
+        @DeleteMapping("/delete/{id}")
         @PreAuthorize("hasRole('USER')")
         public ResponseEntity<?> deleteUser(@PathVariable String id, HttpServletRequest http) {
 

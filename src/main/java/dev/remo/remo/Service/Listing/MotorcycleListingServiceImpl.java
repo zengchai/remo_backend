@@ -120,7 +120,6 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
 
         motorcycleListing.setUser(currentUser);
         motorcycleListing.setMotorcycleModel(motorcycle);
-        motorcycleListing.setStatus(StatusEnum.PENDING);
 
         MotorcycleListingDO motorcycleListingDO = motorcycleListingMapper
                 .convertToMotorcycleListingDO(motorcycleListing);
@@ -172,6 +171,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         MotorcycleListingDO motorcycleListingDO = motorListingRepository
                 .getListingById(ObjectIdUtil.validateObjectId(listingId))
                 .orElseThrow(() -> new NotFoundResourceException("Listing is not found"));
+                
         return motorcycleListingMapper.convertMotorcycleListingDOToModel(motorcycleListingDO);
     }
 
@@ -406,5 +406,22 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         return MotorcycleModelList.builder()
                 .motorcycleModels(motorcycleModelMap)
                 .build();
+    }
+
+    public int getMotorcycleListingCount() {
+        return motorListingRepository.getMotorcycleListingCount();
+    }
+
+    public void deleteMotorcycleListingsByUserId(String userId) {
+        User user = authService.validateUser(userId);
+        List<MotorcycleListing> motorcycleListings = getMotorcycleListingByUserId(user.getId());
+        if (motorcycleListings.isEmpty()) {
+            logger.info("No listings found for user: " + user.getId());
+            return;
+        }
+        for (MotorcycleListing listing : motorcycleListings) {
+            deleteMotorcycleListingById(listing.getId());
+        }
+        logger.info("All listings deleted for user: " + user.getId());
     }
 }

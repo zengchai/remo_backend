@@ -125,6 +125,7 @@ public class MotorcycleListingMapper {
                 .area(motorcycleListingDO.getArea())
                 .mileage(motorcycleListingDO.getMileage())
                 .price(motorcycleListingDO.getPrice())
+                .plateNumber(motorcycleListingDO.getPlateNumber())
                 .phoneNumber(motorcycleListingDO.getPhoneNumber())
                 .status(motorcycleListingDO.getStatus())
                 .createdAt(motorcycleListingDO.getCreatedAt())
@@ -161,6 +162,10 @@ public class MotorcycleListingMapper {
                 .plateNumber(motorcycleListing.getPlateNumber())
                 .phoneNumber(motorcycleListing.getPhoneNumber())
                 .imagesIds(motorcycleListing.getImagesIds())
+                .createdAt(motorcycleListing.getCreatedAt())
+                .updatedBy(motorcycleListing.getExtInfo() != null ? motorcycleListing.getExtInfo().get("updatedBy") : null)
+                .updatedAt(motorcycleListing.getExtInfo() != null ? motorcycleListing.getExtInfo().get("updatedAt") : null)
+                .remark(motorcycleListing.getExtInfo() != null ? motorcycleListing.getExtInfo().get("remark") : null)
                 .isFavourite(isFavourite)
                 .build();
 

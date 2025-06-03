@@ -142,23 +142,28 @@ public class AuthServiceImpl implements AuthService {
         mailSender.send(message);
     }
 
-    private User getUserByToken(String token) {
-        UserDO userDO = userRepository.findByToken(token)
-                .orElseThrow(() -> new NotFoundResourceException("Invalid token"));
-
-        if (userDO.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Token expired");
+    private User getUserByToken(String email,String token) {
+        User user = userMapper.convertToUser(userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundResourceException("User not found with email: " + email)));
+        if (user.getResetToken() == null || !user.getResetToken().equals(token)) {
+            throw new IllegalArgumentException("Invalid reset token");
         }
-
-        return userMapper.convertToUser(userDO);
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset token has expired");
+        }
+        if (user.getResetToken().equals(token)) {
+            return user;
+        } else {
+            throw new IllegalArgumentException("Reset token is invalid");
+        }
     }
 
-    public void verifyResetToken(String token) {
-        getUserByToken(token);
+    public void verifyResetToken(String email, String token) {
+        getUserByToken(email, token);
     }
 
-    public void resetPassword(String token, String newPassword) {
-        User user = getUserByToken(token);
+    public void resetPassword(String email, String token, String newPassword) {
+        User user = getUserByToken(email,token);
         userRepository.updatePassword(new ObjectId(user.getId()), encoder.encode(newPassword));
         userRepository.deleteResetToken(new ObjectId(user.getId()));
     }

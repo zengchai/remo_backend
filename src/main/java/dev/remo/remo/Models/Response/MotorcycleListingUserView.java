@@ -17,6 +17,7 @@ public class MotorcycleListingUserView {
     private String price;
     private String insepctionStatus;
     private String inspectionId;
+    private String plateNumber;
     private String phoneNumber;
     private String imagesIds;
     private String createdAt;

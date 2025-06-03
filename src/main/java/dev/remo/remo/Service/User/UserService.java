@@ -4,6 +4,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Models.Request.UpdateUserRequest;
+import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 
 public interface UserService {
@@ -14,6 +15,8 @@ public interface UserService {
     Boolean favouriteMotorcycleListing(String motorcycleListingId);
 
     User getUserById(String id);
+
+    UserProfileResponse getMyProfile();
 
     void removeFavouriteMotorcycleListing(String motorcycleListingId);
 

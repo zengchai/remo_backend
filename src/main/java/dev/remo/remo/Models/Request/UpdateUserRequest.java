@@ -9,7 +9,7 @@ public class UpdateUserRequest {
     @NotBlank(message = "Name is required")
     private String name;
     @NotBlank(message = "phoneNumber is required")
-    private String phoneNum;
+    private String phoneNumber;
     @NotBlank(message = "nric is required")
     private String nric;
     @NotBlank(message = "dob is required")

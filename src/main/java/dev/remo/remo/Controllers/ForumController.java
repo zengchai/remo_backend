@@ -130,4 +130,14 @@ public class ForumController {
                                 .data(forumService.getAllReview(page, size))
                                 .build());
         }
+
+        
+        @DeleteMapping("/delete/user/{userId}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> deleteForumByUserId(@PathVariable String userId, HttpServletRequest http) {
+                forumService.deleteReviewByUserId(userId);
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Deleted all inspection for user " + userId)
+                                .build());
+        }
 }

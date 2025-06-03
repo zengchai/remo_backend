@@ -144,4 +144,8 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
         query.with(pageable);
         return new PageImpl<>(mongoTemplate.find(query, MotorcycleListingDO.class), pageable, total);
     }
+
+    public int getMotorcycleListingCount() {
+        return (int) motorListingMongoDb.count();
+    }
 }

@@ -30,4 +30,6 @@ public interface ForumRepository {
     Page<ReviewDO> getReviewsByMotorcycleModelIdWithPaging(String motorcycleModelId, Pageable pageable);
 
     Page<ReviewDO> getAllReviewsByPage(Pageable pageable);
+
+    List<ReviewDO> getReviewsByUserId(String userId);
 }

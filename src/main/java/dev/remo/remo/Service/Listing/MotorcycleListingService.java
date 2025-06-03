@@ -48,4 +48,8 @@ public interface MotorcycleListingService {
     Boolean favouriteMotorcycleListing(String motorcycleListingId);
 
     MotorcycleModelList getMotorcycleModelList();
+
+    int getMotorcycleListingCount();
+
+    void deleteMotorcycleListingsByUserId(String userId);
 }

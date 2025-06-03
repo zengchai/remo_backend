@@ -139,6 +139,7 @@ public class ListingContorller {
                                 .data(motorcycleListingService.getMotorcycleListingDetailUserView(id))
                                 .build());
         }
+
         @GetMapping("/motorcyclemodel/getall")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> getMotorcycleModelList(HttpServletRequest http) {
@@ -212,6 +213,24 @@ public class ListingContorller {
 
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message(message)
+                                .build());
+        }
+
+        @GetMapping("/count")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getListingCount(HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .data(motorcycleListingService.getMotorcycleListingCount())
+                                .build());
+        }
+
+        @DeleteMapping("/delete/user/{userId}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> deleteListingByUserId(@PathVariable String userId, HttpServletRequest http) {
+                motorcycleListingService.deleteMotorcycleListingsByUserId(userId);
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Deleted all listings for user " + userId)
                                 .build());
         }
 }

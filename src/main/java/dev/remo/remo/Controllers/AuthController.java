@@ -1,5 +1,7 @@
 package dev.remo.remo.Controllers;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.remo.remo.Models.Request.SignInRequest;
@@ -80,7 +81,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestPart String email) {
+    public ResponseEntity<?> forgotPassword(@RequestBody String email) {
 
         authService.initiateResetPassword(email);
 
@@ -91,9 +92,9 @@ public class AuthController {
     }
 
     @PostMapping("/verify-reset-token")
-    public ResponseEntity<?> verifyResetToken(@RequestPart String token) {
-        
-        authService.verifyResetToken(token);
+    public ResponseEntity<?> verifyResetToken(@RequestBody Map<String,String> request) {
+
+        authService.verifyResetToken(request.get("email"), request.get("token"));
 
         return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                 .message("Token is valid")
@@ -102,8 +103,9 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestPart String token, @RequestPart String password) {
-        authService.resetPassword(token, password);
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String,String> request) {
+
+        authService.resetPassword(request.get("email"), request.get("token"), request.get("newPassword"));
 
         return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                 .message("Password reset successfully").build());

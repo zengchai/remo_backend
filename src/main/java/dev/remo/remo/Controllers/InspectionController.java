@@ -189,4 +189,13 @@ public class InspectionController {
                                 .contentType(MediaType.IMAGE_JPEG)
                                 .body(inspectionService.getShopImage(id));
         }
+
+        @DeleteMapping("/delete/user/{userId}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> deleteInspectionByUserId(@PathVariable String userId, HttpServletRequest http) {
+                inspectionService.deleteInspectionByUserId(userId);
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .message("Deleted all inspection for user " + userId)
+                                .build());
+        }
 }

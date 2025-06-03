@@ -187,4 +187,17 @@ public class ForumServiceImpl implements ForumService {
                     motorcycleModel, currentUser);
         });
     }
+
+    public void deleteReviewByUserId(String userId) {
+        logger.info("Deleting reviews by user ID: " + userId);
+        User user = authService.validateUser(userId);
+        List<ReviewDO> reviews = forumRepository.getReviewsByUserId(user.getId());
+        if (reviews.isEmpty()) {
+            logger.info("No review found for user: " + userId);
+            return;
+        }
+        for (ReviewDO review : reviews) {
+            deleteReviewById(review.getId().toString());
+        }
+    }
 }

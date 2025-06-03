@@ -42,4 +42,6 @@ public interface MotorListingRepository {
     List<MotorcycleListingDO> getMotorcycleListingByUserId(String id);
 
     Page<MotorcycleListingDO> getMotorcycleListingByFilter(List<Criteria> query, Pageable pageable);
+    
+    int getMotorcycleListingCount();
 }

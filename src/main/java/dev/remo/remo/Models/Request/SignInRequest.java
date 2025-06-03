@@ -7,14 +7,13 @@ import lombok.Data;
 
 @Data
 public class SignInRequest {
-    
+
     @NotBlank
-    @Email
+    @Email(message = "Invalid email format")
     private String email;
 
     @NotBlank
-    @Size(min=8)
+    @Size(min = 8)
     private String password;
-
 
 }

@@ -43,4 +43,6 @@ public interface InspectionService {
 
     Page<InspectionDetailAdminView> getAllInspectionByFilter(FilterInspectionRequest filterInspectionRequest,int page, int size);
 
+    void deleteInspectionByUserId(String userId);
+
 }
