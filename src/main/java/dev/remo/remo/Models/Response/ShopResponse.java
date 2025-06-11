@@ -1,7 +1,5 @@
 package dev.remo.remo.Models.Response;
 
-import org.springframework.core.io.Resource;
-
 import lombok.Builder;
 import lombok.Data;
 

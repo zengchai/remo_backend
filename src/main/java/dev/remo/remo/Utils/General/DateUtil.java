@@ -18,4 +18,8 @@ public class DateUtil {
     public static String format(LocalDateTime dateTime) {
         return dateTime.format(DATE_TIME_FORMATTER);
     }
+
+    public static LocalDateTime nowDateTime() {
+        return LocalDateTime.now();
+    }
 }

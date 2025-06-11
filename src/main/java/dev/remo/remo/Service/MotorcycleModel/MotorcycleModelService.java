@@ -17,7 +17,7 @@ public interface MotorcycleModelService {
 
      MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model);
 
-     MotorcycleModel getMotorcycleByBrand(String brand);
+     List<MotorcycleModel> getMotorcycleByBrand(String brand);
 
      MotorcycleModel getMotorcycleModelById(String id);
 

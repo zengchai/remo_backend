@@ -24,6 +24,7 @@ public class User implements UserDetails {
     private String phoneNum;
     private String dob;
     private String imageId;
+    private String createdAt;
     private List<String> favouriteListingIds;
     private List<String> motorcycleListingIds;
     private List<UserRole> role;

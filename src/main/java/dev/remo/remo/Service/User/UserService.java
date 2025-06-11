@@ -1,8 +1,11 @@
 package dev.remo.remo.Service.User;
 
+import java.util.List;
+
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.remo.remo.Models.General.MonthCount;
 import dev.remo.remo.Models.Request.UpdateUserRequest;
 import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
@@ -21,4 +24,9 @@ public interface UserService {
     void removeFavouriteMotorcycleListing(String motorcycleListingId);
 
     Resource getUserImageById(String id);
+
+    List<MonthCount> getNewUsersPerMonth();
+
+    long getActiveUsers(int days);
+    int getUserCount();
 }

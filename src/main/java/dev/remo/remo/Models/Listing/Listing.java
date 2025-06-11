@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 public class Listing {
     
     private String id;
-    private String price;
+    private int price;
     private User user;
 
 }

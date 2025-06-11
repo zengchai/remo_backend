@@ -1,5 +1,6 @@
 package dev.remo.remo.Models.Listing.Motorcycle;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -33,9 +34,9 @@ public class MotorcycleListingDO {
     @NotBlank
     private String phoneNumber;
     @NotBlank
-    private String price;
+    private int price;
     @NotBlank
-    private String createdAt;
+    private LocalDateTime createdAt;
     @NotBlank
     private String state;
     @NotBlank

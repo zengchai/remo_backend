@@ -38,6 +38,8 @@ public class UserDO {
     private String imageId;
     private String dob;
     private String resetToken;
+    private LocalDateTime createdAt;
+    private LocalDateTime lastLoginAt;
     private LocalDateTime resetTokenExpiry;
 
 

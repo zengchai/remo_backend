@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -74,4 +73,33 @@ public class UserController {
                                 .body(userService.getUserImageById(id));
         }
 
+        @GetMapping("/getNewUsersPerMonth")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getNewUsersPerMonth() {
+
+                return ResponseEntity
+                                .ok(GeneralResponse.builder().success(true).error("").message("Fetched successfully")
+                                                .data(userService.getNewUsersPerMonth())
+                                                .build());
+        }
+
+        @GetMapping("/getActiveUsers/{days}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getActiveUsers(@PathVariable int days) {
+
+                return ResponseEntity
+                                .ok(GeneralResponse.builder().success(true).error("").message("Fetched successfully")
+                                                .data(userService.getActiveUsers(days))
+                                                .build());
+        }
+
+        @GetMapping("/getUserCount")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getUserCount() {
+
+                return ResponseEntity
+                                .ok(GeneralResponse.builder().success(true).error("").message("Fetched successfully")
+                                                .data(userService.getUserCount())
+                                                .build());
+        }
 }

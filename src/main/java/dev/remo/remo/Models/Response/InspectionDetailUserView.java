@@ -12,6 +12,7 @@ public class InspectionDetailUserView {
     private String id;
     private String date;
     private String time;
+    private String motorcycleListingId;
     private String shopName;
     private String address;
     private String shopImageId;

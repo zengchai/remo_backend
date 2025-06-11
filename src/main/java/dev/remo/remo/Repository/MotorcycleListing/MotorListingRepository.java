@@ -11,6 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.remo.remo.Models.General.BrandModelAvgPrice;
+import dev.remo.remo.Models.General.ModelCount;
+import dev.remo.remo.Models.General.MonthCount;
+import dev.remo.remo.Models.General.StatusCount;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 
 public interface MotorListingRepository {
@@ -42,6 +46,12 @@ public interface MotorListingRepository {
     List<MotorcycleListingDO> getMotorcycleListingByUserId(String id);
 
     Page<MotorcycleListingDO> getMotorcycleListingByFilter(List<Criteria> query, Pageable pageable);
-    
+
     int getMotorcycleListingCount();
+
+    List<MonthCount> getNewListingsPerMonth();
+
+    List<StatusCount> getListingCountByStatus();
+
+    List<ModelCount> getListingCountAndAvgPriceByMotorcycleId();
 }

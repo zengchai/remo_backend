@@ -89,10 +89,9 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
     }
 
-    public Optional<MotorcycleModelDO> findByBrand(String brand) {
+    public List<MotorcycleModelDO> findByBrand(String brand) {
         Query query = new Query(Criteria.where("brand").is(brand));
-        MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
-        return Optional.ofNullable(result);
+        return mongoTemplate.find(query, MotorcycleModelDO.class);
     }
 
     public Page<MotorcycleModelDO> getMotorcycleModelByFilter(List<Criteria> criteriaList, Pageable pageable) {

@@ -21,7 +21,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import ch.qos.logback.core.util.StringUtil;
 import dev.remo.remo.Mappers.InspectionMapper;
 import dev.remo.remo.Models.Inspection.Inspection;
 import dev.remo.remo.Models.Inspection.InspectionDO;
@@ -265,8 +264,7 @@ public class InspectionServiceImpl implements InspectionService {
         String status = filterInspectionRequest.getStatus();
         String minDate = filterInspectionRequest.getMinDate();
         String maxDate = filterInspectionRequest.getMaxDate();
-        String minTime = filterInspectionRequest.getMinTime();
-        String maxTime = filterInspectionRequest.getMaxTime();
+        String time = filterInspectionRequest.getTime();
 
         if (StringUtils.isNotBlank(shopId)) {
             criteriaList.add(Criteria.where("shopId").is(shopId));
@@ -280,12 +278,8 @@ public class InspectionServiceImpl implements InspectionService {
             criteriaList.add(Criteria.where("date").lte(maxDate));
         }
 
-        if (StringUtils.isNotBlank(minTime) && StringUtils.isNotBlank(maxTime)) {
-            criteriaList.add(Criteria.where("time").gte(minTime).lte(maxTime));
-        } else if (StringUtils.isNotBlank(minTime)) {
-            criteriaList.add(Criteria.where("time").gte(minTime));
-        } else if (StringUtils.isNotBlank(maxTime)) {
-            criteriaList.add(Criteria.where("time").lte(maxTime));
+        if (StringUtils.isNotBlank(time)) {
+            criteriaList.add(Criteria.where("time").is(time));
         }
 
         if (StringUtils.isNotBlank(status)) {

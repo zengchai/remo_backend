@@ -181,7 +181,7 @@ public class ListingContorller {
                         @PathVariable int page,
                         @PathVariable int size,
                         HttpServletRequest http) {
-
+                System.err.println("Filter Request: " + filterRequest);
                 return ResponseEntity.ok(GeneralResponse.builder()
                                 .success(true)
                                 .error("")
@@ -233,4 +233,31 @@ public class ListingContorller {
                                 .message("Deleted all listings for user " + userId)
                                 .build());
         }
+
+        @GetMapping("/getListingByMonth")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getListingByMonth(HttpServletRequest http) {
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .data(motorcycleListingService.getNewListingsPerMonth())
+                                .build());
+        }
+
+        @GetMapping("/getListingStatusCount")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getListingStatusCount(HttpServletRequest http) {
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .data(motorcycleListingService.getMotorcycleListingStatusCount())
+                                .build());
+        }
+
+        
+        @GetMapping("/getListingModelCountAndAvgPrice")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<?> getListingModelCountAndAvgPrice(HttpServletRequest http) {
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .data(motorcycleListingService.getListingCountAndAvgPriceByMotorcycleId())
+                                .build());
+        }
+
+
 }

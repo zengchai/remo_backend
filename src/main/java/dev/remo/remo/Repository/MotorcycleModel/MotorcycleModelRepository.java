@@ -27,7 +27,7 @@ public interface MotorcycleModelRepository {
 
     Optional<Resource> getMotorcycleModelImageById(ObjectId id);
 
-    Optional<MotorcycleModelDO> findByBrand(String brand);
+    List<MotorcycleModelDO> findByBrand(String brand);
 
     Page<MotorcycleModelDO> getMotorcycleModelByFilter(List<Criteria> criteriaList, Pageable pageable);
 

@@ -14,7 +14,7 @@ public class MotorcycleListingUserView {
     private String state;
     private String area;
     private String mileage;
-    private String price;
+    private int price;
     private String insepctionStatus;
     private String inspectionId;
     private String plateNumber;

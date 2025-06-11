@@ -40,7 +40,7 @@ public class MotorcycleListingMapper {
                 .state(request.getState())
                 .area(request.getArea())
                 .plateNumber(request.getPlateNumber())
-                .price(request.getPrice())
+                .price(Integer.parseInt(request.getPrice()))
                 .build();
 
     }
@@ -53,7 +53,7 @@ public class MotorcycleListingMapper {
             builder.id(new ObjectId(motorcycleListing.getId()));
         }
         if (StringUtils.isBlank(motorcycleListing.getCreatedAt())) {
-            builder.createdAt(DateUtil.getCurrentDateTime());
+            builder.createdAt(DateUtil.nowDateTime());
         }
 
         return builder
@@ -128,7 +128,7 @@ public class MotorcycleListingMapper {
                 .plateNumber(motorcycleListingDO.getPlateNumber())
                 .phoneNumber(motorcycleListingDO.getPhoneNumber())
                 .status(motorcycleListingDO.getStatus())
-                .createdAt(motorcycleListingDO.getCreatedAt())
+                .createdAt(DateUtil.format(motorcycleListingDO.getCreatedAt()))
                 .imagesIds(motorcycleListingDO.getImagesIds().get(0))
                 .build();
 

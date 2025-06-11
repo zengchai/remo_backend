@@ -20,25 +20,29 @@ public class AiChatbotServiceImpl implements AiChatbotService {
     GroqApiUtils groqApiUtils;
 
     public String buildPrompt(PredictPriceRequest request) {
-        return String.format(
-                "You are an expert in Malaysian motorcycle resale pricing. Based on current market trends in Malaysia, predict the fair resale price in MYR for the following used motorcycle. "
-                        +
-                        "Consider all provided attributes carefully to determine a realistic market value. " +
-                        "Return only the price as a number without any currency symbol, explanation, or extra text.\n" +
-                        "- Brand: %s\n" +
-                        "- Model: %s\n" +
-                        "- Manufactured Year: %s\n" +
-                        "- Mileage (in km): %s\n" +
-                        "- Engine Capacity (cc): %s\n" +
-                        "- Transmission Type: %s",
-                request.getBrand(),
-                request.getModel(),
-                request.getManufacturedYear(),
-                request.getMileage(),
-                request.getCubicCapacity(),
-                request.getTransmission());
-    }
-
+    String z = String.format(
+        "You are an expert in Malaysian used motorcycle pricing. " +
+        "Given the following details, predict a fair resale price in MYR for a typical used motorcycle in Malaysia. " +
+        "Most used motorcycles in Malaysia are priced between 1,000 and 100,000 MYR. " +
+        "Do NOT suggest prices above 100,000 MYR unless the motorcycle is a rare or luxury model (which will be clearly stated). " +
+        "Consider the brand, model, year, mileage, engine capacity, and transmission. " +
+        "Return ONLY the price as a number, with no currency symbol, explanation, or extra text.\n" +
+        "- Brand: %s\n" +
+        "- Model: %s\n" +
+        "- Manufactured Year: %s\n" +
+        "- Mileage (in km): %s\n" +
+        "- Engine Capacity (cc): %s\n" +
+        "- Transmission Type: %s",
+        request.getBrand(),
+        request.getModel(),
+        request.getManufacturedYear(),
+        request.getMileage(),
+        request.getCubicCapacity(),
+        request.getTransmission()
+    );
+    logger.info("Generated prompt: {}", z); // Log the generated prompt for debugging
+    return z;
+}
     public String extractFromResponse(String promptMessage) {
 
         RestTemplate restTemplate = new RestTemplate();

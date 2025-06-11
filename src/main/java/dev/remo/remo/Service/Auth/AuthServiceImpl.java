@@ -30,6 +30,7 @@ import dev.remo.remo.Repository.User.UserRepository;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import dev.remo.remo.Utils.Exception.OwnershipNotMatchException;
+import dev.remo.remo.Utils.General.DateUtil;
 import dev.remo.remo.Utils.JWTAuth.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -74,6 +75,8 @@ public class AuthServiceImpl implements AuthService {
         jwtUtils.setJwtCookie(response, refreshToken);
 
         User user = (User) authentication.getPrincipal();
+        userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
+
         logger.info("User signed in successfully: {}", signInRequest.getEmail());
         return userMapper.convertToJwtResponse(user, accessToken);
     }
@@ -89,6 +92,7 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
         String newAccessToken = jwtUtils.generateAccessToken(authentication);
         String newRefreshToken = jwtUtils.generateRefreshToken(authentication);
+        userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
 
         jwtUtils.setJwtCookie(response, newRefreshToken);
         logger.info("New refresh token set in cookie");
@@ -142,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
         mailSender.send(message);
     }
 
-    private User getUserByToken(String email,String token) {
+    private User getUserByToken(String email, String token) {
         User user = userMapper.convertToUser(userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundResourceException("User not found with email: " + email)));
         if (user.getResetToken() == null || !user.getResetToken().equals(token)) {
@@ -163,7 +167,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public void resetPassword(String email, String token, String newPassword) {
-        User user = getUserByToken(email,token);
+        User user = getUserByToken(email, token);
         userRepository.updatePassword(new ObjectId(user.getId()), encoder.encode(newPassword));
         userRepository.deleteResetToken(new ObjectId(user.getId()));
     }

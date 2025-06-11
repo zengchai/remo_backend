@@ -9,8 +9,15 @@ import java.util.Optional;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -22,6 +29,7 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 
+import dev.remo.remo.Models.General.MonthCount;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Repository.User.UserRepository;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
@@ -133,4 +141,49 @@ public class UserRespositoryMongoDb implements UserRepository {
         return Optional.ofNullable(new GridFsResource(downloadStream.getGridFSFile(), downloadStream));
     }
 
+    public List<MonthCount> getNewUsersPerMonth() {
+        // Step 1: Convert the Date field directly to "YYYY-MM"
+        ProjectionOperation projectToMonth = Aggregation.project()
+                .andExpression("{ $dateToString: { format: \"%Y-%m\", date: \"$createdAt\" } }")
+                .as("month");
+
+        // Step 2: Group by month and count
+        GroupOperation groupByMonth = Aggregation.group("month").count().as("count");
+
+        // Step 3: Rename _id to month
+        ProjectionOperation projectFinal = Aggregation.project()
+                .and("_id").as("month")
+                .and("count").as("count");
+
+        // Step 4: Sort
+        SortOperation sort = Aggregation.sort(Sort.Direction.ASC, "month");
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                projectToMonth,
+                groupByMonth,
+                projectFinal,
+                sort);
+
+        AggregationResults<MonthCount> results = mongoTemplate.aggregate(aggregation, "user", MonthCount.class);
+
+        return results.getMappedResults();
+    }
+
+    @Override
+    public void updateLastLoginAt(ObjectId userId, LocalDateTime lastLoginAt) {
+        Query query = new Query(Criteria.where("_id").is(userId));
+        Update update = new Update().set("lastLoginAt", lastLoginAt);
+        mongoTemplate.updateFirst(query, update, UserDO.class);
+    }
+
+    @Override
+    public long countActiveUsersSince(LocalDateTime sinceDate) {
+        Query query = new Query(Criteria.where("lastLoginAt").gte(sinceDate));
+        return mongoTemplate.count(query, UserDO.class);
+    }
+
+    @Override
+    public int getUserCount() {
+        return (int) userMongoDb.count();
+    }
 }

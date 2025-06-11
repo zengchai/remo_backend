@@ -8,8 +8,8 @@ public enum StatusEnum {
     // When listing is approved by the admin
     ACTIVE("ACTIVE", 4),
     
-    // When listing is approved by the admin
-    NOT_ACTIVE("NOT ACTIVE", 4),
+    // When listing was sold
+    NOT_ACTIVE("NOT ACTIVE", 5),
 
     // When inspection is not created by the user
     NOT_STARTED("NOT STARTED", 2),

@@ -1,5 +1,6 @@
 package dev.remo.remo.Mappers;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.bson.types.ObjectId;
@@ -12,6 +13,7 @@ import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Utils.Enum.UserRole;
+import dev.remo.remo.Utils.General.DateUtil;
 import io.micrometer.common.util.StringUtils;
 
 @Component
@@ -56,6 +58,7 @@ public class UserMapper {
         return userDOBuilder
                 .password(user.getPassword())
                 .email(user.getEmail())
+                .createdAt(LocalDateTime.now())
                 .role(UserRole.convertToString(user.getRole()))
                 .build();
     }

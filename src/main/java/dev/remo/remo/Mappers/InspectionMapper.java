@@ -109,6 +109,7 @@ public class InspectionMapper {
                                 .date(inspection.getDate())
                                 .brand(inspection.getMotorcycleListing().getMotorcycleModel().getBrand())
                                 .model(inspection.getMotorcycleListing().getMotorcycleModel().getModel())
+                                .motorcycleListingId(inspection.getMotorcycleListing().getId())
                                 .shopName(shop.getName())
                                 .address(shop.getAddress())
                                 .shopImageId(shop.getImageId())

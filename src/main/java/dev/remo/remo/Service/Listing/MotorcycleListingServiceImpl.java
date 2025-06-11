@@ -23,6 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Mappers.MotorcycleListingMapper;
+import dev.remo.remo.Models.General.BrandModelAvgPrice;
+import dev.remo.remo.Models.General.ModelCount;
+import dev.remo.remo.Models.General.MonthCount;
+import dev.remo.remo.Models.General.StatusCount;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
@@ -171,7 +175,7 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         MotorcycleListingDO motorcycleListingDO = motorListingRepository
                 .getListingById(ObjectIdUtil.validateObjectId(listingId))
                 .orElseThrow(() -> new NotFoundResourceException("Listing is not found"));
-                
+
         return motorcycleListingMapper.convertMotorcycleListingDOToModel(motorcycleListingDO);
     }
 
@@ -181,7 +185,8 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         User currentUser = authService.getCurrentUser();
         StatusEnum statusEnum = StatusEnum.fromCode(status);
 
-        if (motorcycleListing.getStatus().getPriority() >= StatusEnum.ACTIVE.getPriority()) {
+        if ((motorcycleListing.getStatus().getPriority() >= StatusEnum.ACTIVE.getPriority() && !status.equals(StatusEnum.NOT_ACTIVE.getCode()))||
+                motorcycleListing.getStatus().getPriority() >= StatusEnum.NOT_ACTIVE.getPriority()) {
             throw new InvalidStatusException("The listing is already active or sold");
         }
 
@@ -325,33 +330,41 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         String minPrice = filterRequest.getMinPrice();
         String maxPrice = filterRequest.getMaxPrice();
         String status = filterRequest.getStatus();
-        MotorcycleModel motorcycleModel;
 
         if (StringUtils.isNotBlank(brand)) {
+
+            List<MotorcycleModel> motorcycleModels = new ArrayList<>();
             if (StringUtils.isNotBlank(model)) {
-                motorcycleModel = motorcycleModelService
-                        .getMotorcycleByBrandAndModel(brand, model);
+                motorcycleModels.add(motorcycleModelService
+                        .getMotorcycleByBrandAndModel(brand, model));
             } else {
-                motorcycleModel = motorcycleModelService.getMotorcycleByBrand(brand);
+                motorcycleModels = motorcycleModelService
+                        .getMotorcycleByBrand(brand);
             }
-            criteriaList.add(Criteria.where("motorcycleId").is(motorcycleModel.getId()));
-            motorcycleModelMap.put(motorcycleModel.getId(), motorcycleModel);
+            System.err.println("Motorcycle Models: " + motorcycleModels);
+            criteriaList.add(Criteria.where("motorcycleId").in(
+                    motorcycleModels.stream()
+                            .map(MotorcycleModel::getId)
+                            .collect(Collectors.toList())));
+
+            motorcycleModelMap.putAll(motorcycleModels.stream()
+                    .collect(Collectors.toMap(MotorcycleModel::getId, m -> m)));
         }
 
         if (StringUtils.isNotBlank(minManufacturedYear) && StringUtils.isNotBlank(maxManufacturedYear)) {
             criteriaList.add(Criteria.where("manufacturedYear").gte(minManufacturedYear).lte(maxManufacturedYear));
-        } else if (minPrice != null) {
+        } else if (minManufacturedYear != null) {
             criteriaList.add(Criteria.where("manufacturedYear").gte(minManufacturedYear));
-        } else if (maxPrice != null) {
+        } else if (maxManufacturedYear != null) {
             criteriaList.add(Criteria.where("manufacturedYear").lte(maxManufacturedYear));
         }
 
         if (StringUtils.isNotBlank(minPrice) && StringUtils.isNotBlank(maxPrice)) {
-            criteriaList.add(Criteria.where("price").gte(minPrice).lte(maxPrice));
-        } else if (minPrice != null) {
-            criteriaList.add(Criteria.where("price").gte(minPrice));
-        } else if (maxPrice != null) {
-            criteriaList.add(Criteria.where("price").lte(maxPrice));
+            criteriaList.add(Criteria.where("price").gte(Integer.parseInt(minPrice)).lte(Integer.parseInt(maxPrice)));
+        } else if (StringUtils.isNotBlank(minPrice)) {
+            criteriaList.add(Criteria.where("price").gte(Integer.parseInt(minPrice)));
+        } else if (StringUtils.isNotBlank(maxPrice)) {
+            criteriaList.add(Criteria.where("price").lte(Integer.parseInt(maxPrice)));
         }
 
         if (authService.getCurrentUser().getRole().contains(UserRole.ADMIN)) {
@@ -424,4 +437,30 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
         }
         logger.info("All listings deleted for user: " + user.getId());
     }
+
+    public List<MonthCount> getNewListingsPerMonth() {
+        return motorListingRepository.getNewListingsPerMonth();
+    }
+
+    public List<StatusCount> getMotorcycleListingStatusCount() {
+        return motorListingRepository.getListingCountByStatus();
+    }
+
+    public List<ModelCount> getListingCountAndAvgPriceByMotorcycleId() {
+
+        List<ModelCount> modelCounts = motorListingRepository.getListingCountAndAvgPriceByMotorcycleId();
+
+        for (ModelCount modelCount : modelCounts) {
+            MotorcycleModel motorcycleModel = motorcycleModelService
+                    .getMotorcycleModelById(modelCount.getMotorcycleId());
+            modelCount.setBrand(motorcycleModel.getBrand());
+            modelCount.setModel(motorcycleModel.getModel());
+        }
+
+        return modelCounts.stream()
+                .filter(modelCount -> modelCount.getCount() > 0)
+                .collect(Collectors.toList());
+
+    }
+
 }

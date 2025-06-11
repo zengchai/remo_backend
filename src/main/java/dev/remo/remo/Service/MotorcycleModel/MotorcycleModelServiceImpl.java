@@ -2,6 +2,7 @@ package dev.remo.remo.Service.MotorcycleModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 import dev.remo.remo.Models.Request.FilterForumRequest;
 import dev.remo.remo.Mappers.MotorcycleModelMapper;
+import dev.remo.remo.Models.General.BrandModelAvgPrice;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
@@ -40,10 +42,11 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
 
     }
 
-    public MotorcycleModel getMotorcycleByBrand(String brand) {
-        MotorcycleModelDO motorcycleDO = motorcycleModelRepository.findByBrand(brand)
-                .orElseThrow(() -> new NotFoundResourceException(brand + " is not found"));
-        return motorcycleModelMapper.convertModelDOToModel(motorcycleDO);
+    public List<MotorcycleModel> getMotorcycleByBrand(String brand) {
+        return motorcycleModelRepository.findByBrand(brand)
+                .stream()
+                .map(motorcycleModelMapper::convertModelDOToModel)
+                .toList();
     }
 
     public MotorcycleModel getMotorcycleByBrandAndModel(String brand, String model) {
@@ -110,4 +113,5 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
                 .getMotorcycleModelByFilter(criteriaList, pageable);
         return motorcycleModelMapper.convertModelDOToModel(motorcycleModelDOPage);
     }
+
 }

@@ -30,7 +30,7 @@ public class GroqApiUtils {
         messagesList.add(userMessageMap);
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "meta-llama/llama-4-scout-17b-16e-instruct");
+        requestBody.put("model", "gemma2-9b-it");
         requestBody.put("messages", messagesList);
 
         return new HttpEntity<>(requestBody, headers);

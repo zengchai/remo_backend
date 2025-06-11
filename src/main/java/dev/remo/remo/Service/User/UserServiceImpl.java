@@ -1,5 +1,8 @@
 package dev.remo.remo.Service.User;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.remo.remo.Mappers.UserMapper;
+import dev.remo.remo.Models.General.MonthCount;
 import dev.remo.remo.Models.Request.UpdateUserRequest;
 import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
@@ -58,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.deleteImage(new ObjectId(user.getImageId()));
         logger.info("Image deleted: " + user.getImageId());
-        
+
         userRepository.deleteUser(new ObjectId(user.getId()));
         logger.info("User deleted: " + user.getId());
 
@@ -98,8 +102,22 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundResourceException("Image not found"));
     }
 
+    public List<MonthCount> getNewUsersPerMonth() {
+        return userRepository.getNewUsersPerMonth();
+    }
+
     public UserProfileResponse getMyProfile() {
         User user = authService.getCurrentUser();
         return userMapper.convertToUserProfileResponse(user);
+    }
+
+    public long getActiveUsers(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        logger.info("Counting active users since: " + since);
+        return userRepository.countActiveUsersSince(since);
+    }
+
+    public int getUserCount() {
+        return userRepository.getUserCount();
     }
 }

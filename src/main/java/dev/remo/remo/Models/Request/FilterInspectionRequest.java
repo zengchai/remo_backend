@@ -11,7 +11,6 @@ public class FilterInspectionRequest {
     private String shopId;
     private String minDate;
     private String maxDate;
-    private String minTime;
-    private String maxTime;
+    private String time;
     
 }

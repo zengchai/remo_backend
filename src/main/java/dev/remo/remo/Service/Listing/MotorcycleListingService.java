@@ -6,6 +6,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.remo.remo.Models.General.BrandModelAvgPrice;
+import dev.remo.remo.Models.General.ModelCount;
+import dev.remo.remo.Models.General.MonthCount;
+import dev.remo.remo.Models.General.StatusCount;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListing;
 import dev.remo.remo.Models.Request.CreateOrUpdateListingRequest;
 import dev.remo.remo.Models.Request.FilterListingRequest;
@@ -20,7 +24,7 @@ public interface MotorcycleListingService {
             CreateOrUpdateListingRequest createOrUpdateListingRequest);
 
     void createMotorcycleModel(String brand, String model, MultipartFile image);
-    
+
     void deleteMotorcycleListingById(String listingId);
 
     void updateMotorcycleListingInspection(MotorcycleListing listing, String inspectionId);
@@ -52,4 +56,10 @@ public interface MotorcycleListingService {
     int getMotorcycleListingCount();
 
     void deleteMotorcycleListingsByUserId(String userId);
+
+    List<MonthCount> getNewListingsPerMonth();
+
+    List<StatusCount> getMotorcycleListingStatusCount();
+
+    List<ModelCount> getListingCountAndAvgPriceByMotorcycleId();
 }

@@ -92,7 +92,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-reset-token")
-    public ResponseEntity<?> verifyResetToken(@RequestBody Map<String,String> request) {
+    public ResponseEntity<?> verifyResetToken(@RequestBody Map<String, String> request) {
 
         authService.verifyResetToken(request.get("email"), request.get("token"));
 
@@ -103,7 +103,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String,String> request) {
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
 
         authService.resetPassword(request.get("email"), request.get("token"), request.get("newPassword"));
 
