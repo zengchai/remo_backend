@@ -111,6 +111,7 @@ public class InspectionMapper {
                                 .model(inspection.getMotorcycleListing().getMotorcycleModel().getModel())
                                 .motorcycleListingId(inspection.getMotorcycleListing().getId())
                                 .shopName(shop.getName())
+                                .mapUrl(shop.getMapUrl())
                                 .address(shop.getAddress())
                                 .shopImageId(shop.getImageId())
                                 .time(inspection.getTime())

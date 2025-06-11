@@ -15,6 +15,7 @@ public class InspectionDetailUserView {
     private String motorcycleListingId;
     private String shopName;
     private String address;
+    private String mapUrl;
     private String shopImageId;
     private String brand;
     private String model;

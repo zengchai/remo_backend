@@ -7,6 +7,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class JwtUtils {
 
   @Value("${jwt.refreshToken.expiration}")
   private long refreshTokenExpirationMs;
-  
+
   private Key getAccessTokenKey() {
     return Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessTokenSecret));
   }
@@ -73,24 +74,26 @@ public class JwtUtils {
 
   public boolean validateAccessToken(String token) {
     return validateJwtToken(token, getAccessTokenKey());
-}
+  }
 
-public boolean validateRefreshToken(String token) {
+  public boolean validateRefreshToken(String token) {
     return validateJwtToken(token, getRefreshTokenKey());
-}
+  }
 
   public boolean validateJwtToken(String token, Key key) {
     Jwts.parserBuilder().setSigningKey(key).build().parse(token);
     return true;
   }
 
-  public void setJwtCookie(HttpServletResponse response, String token) {
-    Cookie cookie = new Cookie("refreshToken", token);
-    cookie.setHttpOnly(true);
-    cookie.setSecure(true); // Enable in production
-    cookie.setPath("/");
-    cookie.setMaxAge(24 * 60 * 60); // 1 day
-    response.addCookie(cookie);
+  public String getJwtCookie(String token) {
+    return ResponseCookie.from("refreshToken", token)
+        .httpOnly(true)
+        .secure(true)
+        .path("/")
+        .sameSite("None") // This is the fix
+        .maxAge(24 * 60 * 60)
+        .build()
+        .toString();
   }
 
   public void cleanJwtCookie(HttpServletResponse response) {

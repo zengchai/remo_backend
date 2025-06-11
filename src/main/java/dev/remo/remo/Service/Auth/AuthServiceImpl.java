@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -72,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(authentication);
         String refreshToken = jwtUtils.generateRefreshToken(authentication);
-        jwtUtils.setJwtCookie(response, refreshToken);
+        response.setHeader(HttpHeaders.SET_COOKIE, jwtUtils.getJwtCookie(refreshToken));
 
         User user = (User) authentication.getPrincipal();
         userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
@@ -94,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
         String newRefreshToken = jwtUtils.generateRefreshToken(authentication);
         userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
 
-        jwtUtils.setJwtCookie(response, newRefreshToken);
+        response.setHeader(HttpHeaders.SET_COOKIE, jwtUtils.getJwtCookie(newRefreshToken));
         logger.info("New refresh token set in cookie");
         return userMapper.convertToJwtResponse(user, newAccessToken);
     }
