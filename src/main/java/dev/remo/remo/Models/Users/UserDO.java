@@ -16,13 +16,13 @@ import lombok.Data;
 @Data
 @Builder
 public class UserDO {
-    
+
     @Id
     private ObjectId id;
-    
+
     @NotBlank
     private String email;
-    
+
     @NotBlank
     private String password;
 
@@ -33,14 +33,21 @@ public class UserDO {
     private List<String> favouriteListingIds;
 
     private String name;
-    private String nric;
-    private String phoneNum;
-    private String imageId;
-    private String dob;
-    private String resetToken;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime resetTokenExpiry;
 
+    private String nric;
+
+    private String phoneNum;
+
+    private String imageId;
+
+    private String dob;
+
+    private String resetToken;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime lastLoginAt;
+
+    private LocalDateTime resetTokenExpiry;
 
 }

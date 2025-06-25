@@ -21,6 +21,7 @@ import io.micrometer.common.util.StringUtils;
 public class ForumMapper {
 
     public static Review toDomain(CreateOrUpdateReviewRequest request) {
+    
         Review.ReviewBuilder builder = Review.builder();
 
         if (StringUtils.isNotBlank(request.getId())) {
@@ -53,7 +54,6 @@ public class ForumMapper {
     }
 
     public Review convertReviewDOToReview(ReviewDO reviewDO) {
-
         return Review.builder().id(reviewDO.getId().toString())
                 .motorcycleModel(MotorcycleModel.builder().id(reviewDO.getMotorcycleModelId()).build())
                 .user(User.builder().id(reviewDO.getUserId()).build())
@@ -96,6 +96,7 @@ public class ForumMapper {
             List<MotorcycleModel> motorcycleModel) {
 
         List<ReviewCategoryUserViewResponse> reviewCategoryUserViewResponseList = new ArrayList<>();
+
         for (MotorcycleModel model : motorcycleModel) {
             int reviewsCount = 0;
             if (model.getReviews() != null) {

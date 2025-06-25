@@ -48,8 +48,8 @@ public class ShopRepositoryMongo implements ShopRepository {
         try {
             InputStream inputStream = file.getInputStream();
             String fileName = file.getOriginalFilename();
-
             ObjectId fileId = gridFSBucket.uploadFromStream(fileName, inputStream);
+
             return fileId.toString();
         } catch (IOException e) {
             throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());

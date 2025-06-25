@@ -1,7 +1,5 @@
 package dev.remo.remo.Service.Auth;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,6 +33,7 @@ import dev.remo.remo.Utils.JWTAuth.JwtUtils;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class AuthServiceImpl implements AuthService {
+
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Autowired
@@ -54,7 +52,9 @@ public class AuthServiceImpl implements AuthService {
     JavaMailSender mailSender;
 
     public void registerUser(SignUpRequest request) {
+
         logger.info("Registering user: {}", request.getEmail());
+
         User newUser = userMapper.convertSignUpRequestToUser(request);
         UserDO userDO = userRepository.findByEmail(newUser.getEmail()).orElse(null);
 
@@ -64,26 +64,30 @@ public class AuthServiceImpl implements AuthService {
 
         newUser.setPassword(encoder.encode(newUser.getPassword()));
         userRepository.saveUser(userMapper.convertToUserDO(newUser));
+
         logger.info("User registered successfully: {}", request.getEmail());
     }
 
     public JwtResponse signIn(SignInRequest signInRequest, HttpServletResponse response,
             Authentication authentication) {
+
         logger.info("Signing in user: {}", signInRequest.getEmail());
 
         String accessToken = jwtUtils.generateAccessToken(authentication);
         String refreshToken = jwtUtils.generateRefreshToken(authentication);
         response.setHeader(HttpHeaders.SET_COOKIE, jwtUtils.getJwtCookie(refreshToken));
-
         User user = (User) authentication.getPrincipal();
         userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
 
         logger.info("User signed in successfully: {}", signInRequest.getEmail());
+
         return userMapper.convertToJwtResponse(user, accessToken);
     }
 
     public JwtResponse refreshToken(String refreshToken, HttpServletResponse response) {
+
         logger.info("Refreshing token for user");
+
         if (refreshToken == null || !jwtUtils.validateRefreshToken(refreshToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
         }
@@ -94,9 +98,10 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtUtils.generateAccessToken(authentication);
         String newRefreshToken = jwtUtils.generateRefreshToken(authentication);
         userRepository.updateLastLoginAt(new ObjectId(user.getId()), DateUtil.nowDateTime());
-
         response.setHeader(HttpHeaders.SET_COOKIE, jwtUtils.getJwtCookie(newRefreshToken));
+
         logger.info("New refresh token set in cookie");
+
         return userMapper.convertToJwtResponse(user, newAccessToken);
     }
 
@@ -107,7 +112,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-
         UserDO userDO = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundResourceException("User Not Found with email: " + email));
         return userMapper.convertToUser(userDO);
@@ -121,7 +125,6 @@ public class AuthServiceImpl implements AuthService {
 
     public User validateUser(String userId) {
         User user = getCurrentUser();
-
         if (!user.getId().equals(userId)
                 && user.getAuthorities().stream().noneMatch(role -> role.getAuthority().equals("ROLE_ADMIN"))) {
             throw new OwnershipNotMatchException("You don't own this resource");
@@ -130,7 +133,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public void initiateResetPassword(String email) {
+
         logger.info("Initiating password reset for user: {}", email);
+
         User user = userMapper.convertToUser(userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundResourceException("User not found with email: " + email)));
 
@@ -145,17 +150,23 @@ public class AuthServiceImpl implements AuthService {
         message.setText("Use this token to reset your password: " + token);
 
         mailSender.send(message);
+
+        logger.info("Password reset token sent to user: {}", email);
     }
 
     private User getUserByToken(String email, String token) {
+
         User user = userMapper.convertToUser(userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundResourceException("User not found with email: " + email)));
+
         if (user.getResetToken() == null || !user.getResetToken().equals(token)) {
             throw new IllegalArgumentException("Invalid reset token");
         }
+
         if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Reset token has expired");
         }
+
         if (user.getResetToken().equals(token)) {
             return user;
         } else {
@@ -164,12 +175,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public void verifyResetToken(String email, String token) {
+        logger.info("Verifying reset token for user: {}", email);
         getUserByToken(email, token);
+        logger.info("Reset token is valid for user: {}", email);
     }
 
     public void resetPassword(String email, String token, String newPassword) {
+
+        logger.info("Resetting password for user: {}", email);
+
         User user = getUserByToken(email, token);
         userRepository.updatePassword(new ObjectId(user.getId()), encoder.encode(newPassword));
         userRepository.deleteResetToken(new ObjectId(user.getId()));
+
+        logger.info("Password reset successfully for user: {}", email);
     }
 }

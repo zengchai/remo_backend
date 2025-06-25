@@ -3,9 +3,9 @@ package dev.remo.remo.Utils.Exception;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -73,6 +73,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 GeneralResponse.builder().success(false).error("An unexpected error occurred").build());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(GeneralResponse.builder()
+                        .success(false)
+                        .error("Invalid email or password")
+                        .build());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

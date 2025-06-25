@@ -11,6 +11,7 @@ import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 
 public interface UserService {
+    
     void updateUser(String id, MultipartFile image, UpdateUserRequest userRequest);
 
     void deleteUser(String id);
@@ -28,5 +29,6 @@ public interface UserService {
     List<MonthCount> getNewUsersPerMonth();
 
     long getActiveUsers(int days);
+
     int getUserCount();
 }

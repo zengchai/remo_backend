@@ -11,11 +11,15 @@ import lombok.Data;
 @Data
 @Builder
 public class ShopDO {
-    
+
     @Id
     private ObjectId id;
+
     private String name;
+
     private String address;
+
     private String mapUrl;
+
     private String imageId;
 }

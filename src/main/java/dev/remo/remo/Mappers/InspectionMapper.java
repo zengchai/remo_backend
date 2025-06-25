@@ -35,12 +35,6 @@ public class InspectionMapper {
                                 .build();
         }
 
-        public InspectionDO initializInspectionDO(Inspection inspection) {
-                return InspectionDO.builder()
-                                .status(inspection.getStatus().getCode())
-                                .build();
-        }
-
         public Shop convertShopDOToShop(ShopDO shopDO) {
                 return Shop.builder()
                                 .id(shopDO.getId().toString())

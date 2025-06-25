@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+// This class represents a request to sign in a user.
 @Data
 public class SignInRequest {
 
@@ -13,7 +14,6 @@ public class SignInRequest {
     private String email;
 
     @NotBlank
-    @Size(min = 8)
+    @Size(min = 6)
     private String password;
-
 }

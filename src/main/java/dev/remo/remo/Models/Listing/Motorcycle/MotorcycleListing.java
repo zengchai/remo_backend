@@ -19,18 +19,30 @@ import lombok.experimental.SuperBuilder;
 public class MotorcycleListing extends Listing {
 
     private MotorcycleModel motorcycleModel;
-    private Inspection inspection;
-    private String createdAt;
-    private StatusEnum status;
-    private String manufacturedYear;
-    private String mileage;
-    private String cubicCapacity;
-    private String transmission;
-    private String phoneNumber;
-    private String state;
-    private String area;
-    private String plateNumber;
-    private List<String> imagesIds;
-    private Map<String, String> extInfo;
 
+    private Inspection inspection;
+
+    private String createdAt;
+
+    private StatusEnum status;
+
+    private String manufacturedYear;
+
+    private String mileage;
+
+    private String cubicCapacity;
+
+    private String transmission;
+
+    private String phoneNumber;
+
+    private String state;
+
+    private String area;
+
+    private String plateNumber;
+
+    private List<String> imagesIds;
+
+    private Map<String, String> extInfo;
 }

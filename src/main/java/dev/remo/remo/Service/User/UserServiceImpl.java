@@ -25,6 +25,7 @@ import dev.remo.remo.Utils.Exception.NotFoundResourceException;
 import io.micrometer.common.util.StringUtils;
 
 public class UserServiceImpl implements UserService {
+
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
@@ -37,15 +38,19 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
 
     public void updateUser(String id, MultipartFile image, UpdateUserRequest updateUserRequest) {
+
         logger.info("Update user with id: " + id);
+
         User updatedUser = userMapper.convertUpdateRequestUserToUser(updateUserRequest);
         User existingUser = authService.validateUser(id);
         updatedUser.setId(existingUser.getId());
 
         if (image != null && !image.isEmpty()) {
+
             if (StringUtils.isNotBlank(existingUser.getImageId())) {
                 userRepository.deleteImage(new ObjectId(existingUser.getImageId()));
             }
+
             String imageId = userRepository.uploadImage(image);
             updatedUser.setImageId(imageId);
             logger.info("Image uploaded with id: " + imageId);
@@ -53,11 +58,13 @@ public class UserServiceImpl implements UserService {
 
         UserDO userDO = userMapper.convertToUserDOForUpdate(updatedUser);
         logger.info("User to be updated: " + userDO.toString());
+
         userRepository.updateUser(userDO);
         logger.info("User updated: " + userDO.toString());
     }
 
     public void deleteUser(String id) {
+
         User user = authService.validateUser(id);
 
         userRepository.deleteImage(new ObjectId(user.getImageId()));
@@ -69,11 +76,13 @@ public class UserServiceImpl implements UserService {
     }
 
     public Boolean favouriteMotorcycleListing(String motorcycleListingId) {
-        logger.info("Favouriting motorcycle listing: " + motorcycleListingId);
-        User user = authService.getCurrentUser();
 
+        logger.info("Favouriting motorcycle listing: " + motorcycleListingId);
+
+        User user = authService.getCurrentUser();
         Boolean isFavourite = user.getFavouriteListingIds().stream()
                 .anyMatch(listingId -> listingId.equals(motorcycleListingId));
+
         if (isFavourite) {
             user.getFavouriteListingIds().remove(motorcycleListingId);
         } else {
@@ -82,6 +91,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.favourite(new ObjectId(user.getId()), user.getFavouriteListingIds());
         logger.info("User favourite listing updated: " + user.getId() + " to " + user.getFavouriteListingIds());
+
         return isFavourite;
     }
 
@@ -91,10 +101,14 @@ public class UserServiceImpl implements UserService {
     }
 
     public void removeFavouriteMotorcycleListing(String motorcycleListingId) {
+
         logger.info("Removing favourite motorcycle listing: " + motorcycleListingId);
+
         Query query = new Query(Criteria.where("favouriteListingIds").in(motorcycleListingId));
         Update update = new Update().pull("favouriteListingIds", motorcycleListingId);
         userRepository.removeFavouriteListingById(query, update);
+
+        logger.info("Favourite motorcycle listing removed: " + motorcycleListingId);
     }
 
     public Resource getUserImageById(String id) {
@@ -113,7 +127,6 @@ public class UserServiceImpl implements UserService {
 
     public long getActiveUsers(int days) {
         LocalDateTime since = LocalDateTime.now().minusDays(days);
-        logger.info("Counting active users since: " + since);
         return userRepository.countActiveUsersSince(since);
     }
 

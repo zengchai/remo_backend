@@ -11,19 +11,22 @@ public class TestController {
 
     @GetMapping("/all") 
 	public String allAccess() {
+		
 		return "Public Content."; 
 	}
 
     @GetMapping("/user") 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 	public String userAccess() {
-		return "User Content."; 
+
+		return "User Content.";
 	}
 
     
     @GetMapping("/admin") 
 	@PreAuthorize("hasRole('ADMIN')")
 	public String adminAccess() {
+
 		return "Admin Content."; 
 	}
 

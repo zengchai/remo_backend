@@ -6,8 +6,12 @@ import lombok.Data;
 @Data
 @Builder
 public class BrandModelAvgPrice {
+
     private String motorcycleId;
+
     private String brand;
+
     private String model;
+    
     private double avgPrice;
 }

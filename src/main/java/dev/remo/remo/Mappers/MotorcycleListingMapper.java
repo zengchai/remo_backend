@@ -19,14 +19,14 @@ import io.micrometer.common.util.StringUtils;
 public class MotorcycleListingMapper {
 
     public static MotorcycleListing toDomain(CreateOrUpdateListingRequest request) {
+        
         MotorcycleListing.MotorcycleListingBuilder<?, ?> builder = MotorcycleListing.builder();
 
         if (StringUtils.isNotBlank(request.getId())) {
             builder.id(request.getId());
         }
 
-        return builder
-                .motorcycleModel(MotorcycleModel.builder()
+        return builder.motorcycleModel(MotorcycleModel.builder()
                         .brand(request.getBrand())
                         .model(request.getModel())
                         .build())
@@ -74,6 +74,7 @@ public class MotorcycleListingMapper {
     }
 
     public MotorcycleListing convertMotorcycleListingDOToModel(MotorcycleListingDO motorcycleListingDO) {
+
         MotorcycleListing.MotorcycleListingBuilder<?, ?> builder = MotorcycleListing.builder();
 
         if (StringUtils.isNotBlank(motorcycleListingDO.getInspectionId())) {
@@ -134,8 +135,7 @@ public class MotorcycleListingMapper {
 
     }
 
-    public MotorcycleListingDetailUserView convertToDetailUserDTOView(MotorcycleListing motorcycleListing,
-            MotorcycleModel motorcycleModel, Boolean isFavourite) {
+    public MotorcycleListingDetailUserView convertToDetailUserDTOView(MotorcycleListing motorcycleListing, Boolean isFavourite) {
 
         MotorcycleListingDetailUserView.MotorcycleListingDetailUserViewBuilder motorcycleListingDetailUserViewBuilder = MotorcycleListingDetailUserView
                 .builder();
@@ -148,8 +148,8 @@ public class MotorcycleListingMapper {
 
         return motorcycleListingDetailUserViewBuilder
                 .id(motorcycleListing.getId().toString())
-                .brand(motorcycleModel.getBrand())
-                .model(motorcycleModel.getModel())
+                .brand(motorcycleListing.getMotorcycleModel().getBrand())
+                .model(motorcycleListing.getMotorcycleModel().getModel())
                 .userId(motorcycleListing.getUser().getId())
                 .status(motorcycleListing.getStatus().getCode())
                 .cubicCapacity(motorcycleListing.getCubicCapacity())

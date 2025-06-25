@@ -94,7 +94,7 @@ public class InspectionController {
 
         @DeleteMapping("/delete/{id}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-        public ResponseEntity<?> updateInspectionReport(@PathVariable String id, HttpServletRequest http) {
+        public ResponseEntity<?> deleteInspection(@PathVariable String id, HttpServletRequest http) {
 
                 inspectionService.deleteInspection(id);
 
@@ -193,7 +193,9 @@ public class InspectionController {
         @DeleteMapping("/delete/user/{userId}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> deleteInspectionByUserId(@PathVariable String userId, HttpServletRequest http) {
+
                 inspectionService.deleteInspectionByUserId(userId);
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Deleted all inspection for user " + userId)
                                 .build());

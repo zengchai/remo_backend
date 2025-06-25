@@ -11,9 +11,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Listing {
-    
-    private String id;
-    private int price;
-    private User user;
 
+    private String id;
+
+    private int price;
+
+    private User user;
 }

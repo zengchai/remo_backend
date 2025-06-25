@@ -7,5 +7,4 @@ import dev.remo.remo.Models.Inspection.Shop.ShopDO;
 
 public interface ShopMongoDb extends MongoRepository<ShopDO, ObjectId> {
 
-    
 }

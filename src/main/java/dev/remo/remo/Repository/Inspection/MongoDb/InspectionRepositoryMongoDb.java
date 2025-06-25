@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,6 +31,7 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         Update update = new Update()
                 .set("status", status)
                 .set("extInfo", extInfo);
+
         mongoTemplate.updateFirst(query, update, InspectionDO.class);
     }
 
@@ -64,7 +67,17 @@ public class InspectionRepositoryMongoDb implements InspectionRepository {
         return mongoTemplate.find(query, InspectionDO.class);
     }
 
-    public List<InspectionDO> getAllInspection(Query query) {
-        return mongoTemplate.find(query, InspectionDO.class);
+    public Page<InspectionDO> getAllInspection(List<Criteria> criteriaList, Pageable pageable) {
+
+        Query query = new Query();
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+        }
+
+        long total = mongoTemplate.count(query, InspectionDO.class);
+        query.with(pageable);
+
+        return new PageImpl<>(mongoTemplate.find(query, InspectionDO.class), pageable, total);
     }
 }

@@ -22,7 +22,6 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 
-import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
 import dev.remo.remo.Utils.Exception.InternalServerErrorException;
@@ -43,18 +42,22 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
 
     @PostConstruct
     public void init() {
+
         this.gridFSBucket = GridFSBuckets.create(mongoDatabase, "motorcycle_models");
     }
 
     public List<MotorcycleModelDO> getMotorcycleList() {
+
         return motorcycleModelMongoDb.findAll();
     }
 
     @Override
     public Optional<MotorcycleModelDO> findByBrandAndModel(String brand, String model) {
+
         Query query = new Query(Criteria.where("brand").is(brand)
                 .and("model").is(model));
         MotorcycleModelDO result = mongoTemplate.findOne(query, MotorcycleModelDO.class);
+
         return Optional.ofNullable(result);
     }
 
@@ -65,7 +68,6 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
 
     @Override
     public void addOrUpdateMotorcycleModel(MotorcycleModelDO motorcycleModelDO) {
-        System.err.println("MotorcycleModelDO: " + motorcycleModelDO);
         motorcycleModelMongoDb.save(motorcycleModelDO);
     }
 
@@ -95,13 +97,16 @@ public class MotorcycleModelRepositoryMongoDb implements MotorcycleModelReposito
     }
 
     public Page<MotorcycleModelDO> getMotorcycleModelByFilter(List<Criteria> criteriaList, Pageable pageable) {
+
         Query query = new Query();
 
         if (!criteriaList.isEmpty()) {
             query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
         }
+
         long total = mongoTemplate.count(query, MotorcycleModelDO.class);
         query.with(pageable);
+
         return new PageImpl<>(mongoTemplate.find(query, MotorcycleModelDO.class), pageable, total);
     }
 }

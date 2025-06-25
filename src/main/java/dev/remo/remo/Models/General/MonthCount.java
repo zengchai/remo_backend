@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class MonthCount {
+
     private String month;
+
     private int count;
 }

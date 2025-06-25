@@ -54,9 +54,7 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        JwtResponse jwtResponse = authService.signIn(request, response, authentication);
-
-        return ResponseEntity.ok(jwtResponse);
+        return ResponseEntity.ok(authService.signIn(request, response, authentication));
     }
 
     @PostMapping("/refresh")
@@ -64,9 +62,7 @@ public class AuthController {
             @CookieValue(name = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response) {
 
-        JwtResponse jwtResponse = authService.refreshToken(refreshToken, response);
-
-        return ResponseEntity.ok(jwtResponse);
+        return ResponseEntity.ok(authService.refreshToken(refreshToken, response));
     }
 
     @PostMapping("/signout")

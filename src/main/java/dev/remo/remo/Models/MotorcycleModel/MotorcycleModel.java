@@ -12,11 +12,13 @@ import lombok.Data;
 public class MotorcycleModel {
 
     private String id;
+
     private String brand;
+
     private String model;
+
     private String imageId;
-    
+
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
-
 }

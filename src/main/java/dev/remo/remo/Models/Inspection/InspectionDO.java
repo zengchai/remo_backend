@@ -14,21 +14,26 @@ import lombok.Data;
 @Data
 @Builder
 public class InspectionDO {
-    
+
     @Id
     private ObjectId id;
+
     @NotBlank
     private String date;
+
     @NotBlank
     private String time;
+
     @NotBlank
     private String shopId;
+
     @NotBlank
     private String motorcycleListingId;
+
     @NotBlank
     private String status;
 
     private Map<String, Map<String, Integer>> componentScores;
-    private Map<String,String> extInfo;
 
+    private Map<String, String> extInfo;
 }

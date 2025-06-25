@@ -8,6 +8,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import dev.remo.remo.Models.Forum.ReviewDO;
 
 public interface ForumMongoDb extends MongoRepository<ReviewDO, ObjectId> {
-    Page<ReviewDO> findAll(Pageable pageable);
 
+    Page<ReviewDO> findAll(Pageable pageable);
 }

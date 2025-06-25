@@ -8,9 +8,12 @@ import lombok.Data;
 public class Shop {
 
     private String id;
+
     private String name;
+
     private String address;
+
     private String mapUrl;
+
     private String imageId;
-    
 }

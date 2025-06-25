@@ -66,8 +66,10 @@ public class ForumRepositoryMongoDb implements ForumRepository {
             String fileName = file.getOriginalFilename();
 
             ObjectId fileId = gridFSBucket.uploadFromStream(fileName, inputStream);
+
             return fileId.toString();
         } catch (IOException e) {
+
             throw new InternalServerErrorException("Failed to upload file: " + file.getOriginalFilename());
         }
     }

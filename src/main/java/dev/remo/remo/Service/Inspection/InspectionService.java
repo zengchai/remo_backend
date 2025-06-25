@@ -17,6 +17,7 @@ import dev.remo.remo.Models.Response.InspectionDetailUserView;
 import dev.remo.remo.Models.Response.ShopResponse;
 
 public interface InspectionService {
+
     void createInspection(CreateInspectionRequest createOrUpdateInspectionRequest);
 
     void updateInspectionStatus(String inspectionId, String status, String remark);
@@ -27,11 +28,13 @@ public interface InspectionService {
 
     void deleteInspection(String id);
 
+    void deleteInspectionByUserId(String userId);
+
+    Resource getShopImage(String id);
+
     Inspection getInspectionById(String id);
 
     List<ShopResponse> getAllShops();
-    
-    Resource getShopImage(String id);
 
     List<InspectionDetailUserView> getMyInspection();
 
@@ -41,8 +44,7 @@ public interface InspectionService {
 
     Page<InspectionDetailAdminView> getAllInspectionAdminView(int page, int size);
 
-    Page<InspectionDetailAdminView> getAllInspectionByFilter(FilterInspectionRequest filterInspectionRequest,int page, int size);
-
-    void deleteInspectionByUserId(String userId);
+    Page<InspectionDetailAdminView> getAllInspectionByFilter(FilterInspectionRequest filterInspectionRequest, int page,
+            int size);
 
 }

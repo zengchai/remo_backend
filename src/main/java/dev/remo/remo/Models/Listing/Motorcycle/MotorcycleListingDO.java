@@ -19,36 +19,50 @@ public class MotorcycleListingDO {
 
     @Id
     private ObjectId id;
+
     @NotBlank
     private String motorcycleId;
+
     @NotBlank
     private String userId;
+
     @NotBlank
     private String manufacturedYear;
+
     @NotBlank
     private String mileage;
+
     @NotBlank
     private String cubicCapacity;
+
     @NotBlank
     private String transmission;
+
     @NotBlank
     private String phoneNumber;
+
     @NotBlank
     private int price;
+
     @NotBlank
     private LocalDateTime createdAt;
+
     @NotBlank
     private String state;
+
     @NotBlank
     private String area;
+
     @NotBlank
     private String status;
+
     @NotBlank
     private String plateNumber;
+
     @NotBlank
     private List<String> imagesIds;
-    
-    private String inspectionId;
-    private Map<String, String> extInfo;
 
+    private String inspectionId;
+
+    private Map<String, String> extInfo;
 }

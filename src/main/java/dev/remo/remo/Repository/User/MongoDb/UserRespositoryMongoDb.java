@@ -10,7 +10,6 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -142,6 +141,7 @@ public class UserRespositoryMongoDb implements UserRepository {
     }
 
     public List<MonthCount> getNewUsersPerMonth() {
+
         // Step 1: Convert the Date field directly to "YYYY-MM"
         ProjectionOperation projectToMonth = Aggregation.project()
                 .andExpression("{ $dateToString: { format: \"%Y-%m\", date: \"$createdAt\" } }")

@@ -29,7 +29,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/listing")
-public class ListingContorller {
+public class ListingController {
 
         @Autowired
         MotorcycleListingService motorcycleListingService;
@@ -38,8 +38,9 @@ public class ListingContorller {
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> predictPrice(@Valid @RequestBody PredictPriceRequest predictRequest,
                         HttpServletRequest http) {
-                String response = motorcycleListingService.predictPrice(predictRequest);
-                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("").data(response).build());
+
+                return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
+                                .data(motorcycleListingService.predictPrice(predictRequest)).build());
         }
 
         @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -98,7 +99,6 @@ public class ListingContorller {
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Deleted successfully")
                                 .build());
-
         }
 
         @GetMapping("/getmylisting/{page}/{size}")
@@ -163,7 +163,6 @@ public class ListingContorller {
                                 .error("")
                                 .data(motorcycleListingService.getMotorcycleListingListUserView(page, size))
                                 .build());
-
         }
 
         @GetMapping("/images/{id}")
@@ -181,7 +180,7 @@ public class ListingContorller {
                         @PathVariable int page,
                         @PathVariable int size,
                         HttpServletRequest http) {
-                System.err.println("Filter Request: " + filterRequest);
+
                 return ResponseEntity.ok(GeneralResponse.builder()
                                 .success(true)
                                 .error("")
@@ -207,12 +206,10 @@ public class ListingContorller {
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> favouriteListing(@PathVariable String listingId, HttpServletRequest http) {
 
-                String message = motorcycleListingService.favouriteMotorcycleListing(listingId)
-                                ? "Unfavourite successfully"
-                                : "Favourite successfully";
-
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
-                                .message(message)
+                                .message(motorcycleListingService.favouriteMotorcycleListing(listingId)
+                                                ? "Unfavourite successfully"
+                                                : "Favourite successfully")
                                 .build());
         }
 
@@ -228,7 +225,9 @@ public class ListingContorller {
         @DeleteMapping("/delete/user/{userId}")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> deleteListingByUserId(@PathVariable String userId, HttpServletRequest http) {
+
                 motorcycleListingService.deleteMotorcycleListingsByUserId(userId);
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .message("Deleted all listings for user " + userId)
                                 .build());
@@ -237,6 +236,7 @@ public class ListingContorller {
         @GetMapping("/getListingByMonth")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> getListingByMonth(HttpServletRequest http) {
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .data(motorcycleListingService.getNewListingsPerMonth())
                                 .build());
@@ -245,19 +245,19 @@ public class ListingContorller {
         @GetMapping("/getListingStatusCount")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> getListingStatusCount(HttpServletRequest http) {
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .data(motorcycleListingService.getMotorcycleListingStatusCount())
                                 .build());
         }
 
-        
         @GetMapping("/getListingModelCountAndAvgPrice")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<?> getListingModelCountAndAvgPrice(HttpServletRequest http) {
+
                 return ResponseEntity.ok(GeneralResponse.builder().success(true).error("")
                                 .data(motorcycleListingService.getListingCountAndAvgPriceByMotorcycleId())
                                 .build());
         }
-
 
 }

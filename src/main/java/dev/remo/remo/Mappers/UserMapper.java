@@ -13,7 +13,6 @@ import dev.remo.remo.Models.Response.UserProfileResponse;
 import dev.remo.remo.Models.Users.User;
 import dev.remo.remo.Models.Users.UserDO;
 import dev.remo.remo.Utils.Enum.UserRole;
-import dev.remo.remo.Utils.General.DateUtil;
 import io.micrometer.common.util.StringUtils;
 
 @Component

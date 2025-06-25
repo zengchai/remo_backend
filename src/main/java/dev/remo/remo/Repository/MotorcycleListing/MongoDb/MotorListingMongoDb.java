@@ -8,5 +8,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import dev.remo.remo.Models.Listing.Motorcycle.MotorcycleListingDO;
 
 public interface MotorListingMongoDb extends MongoRepository<MotorcycleListingDO, ObjectId> {
+    
     Page<MotorcycleListingDO> findAll(Pageable pageable);
 }

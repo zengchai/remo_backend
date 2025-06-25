@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class StatusCount {
+
     private String status;
+
     private long count;
 }

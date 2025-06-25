@@ -60,13 +60,17 @@ public class ForumServiceImpl implements ForumService {
 
     @Transactional
     public void createOrUpdateReview(MultipartFile image, CreateOrUpdateReviewRequest createOrUpdateReviewRequest) {
-        logger.info("Creating or updating review: " + createOrUpdateReviewRequest.toString());
-        Review review = ForumMapper.toDomain(createOrUpdateReviewRequest);
 
+        logger.info("Creating or updating review: " + createOrUpdateReviewRequest.toString());
+
+        Review review = ForumMapper.toDomain(createOrUpdateReviewRequest);
         User currentUser = authService.getCurrentUser();
 
         // Update operation if ID is present
         if (StringUtils.isNotBlank(review.getId())) {
+
+            logger.info("Updating existing review with ID: " + review.getId());
+
             ReviewDO existingReview = getReviewbyId(review.getId());
             authService.validateUser(review.getId());
 
@@ -74,7 +78,10 @@ public class ForumServiceImpl implements ForumService {
             String oldImageId = existingReview.getImageId();
 
             if (StringUtils.isBlank(existingImageId)) {
+
                 forumRepository.deleteReviewImage(new ObjectId(oldImageId));
+                logger.info("Deleted old review image: " + oldImageId);
+
             } else if (!existingImageId.equals(oldImageId)) {
                 throw new NotFoundResourceException("Invalid image ID detected: " + existingImageId);
             } else {
@@ -90,7 +97,7 @@ public class ForumServiceImpl implements ForumService {
         review.setMotorcycleModel(motorcycleModel);
 
         String newImageId = forumRepository.uploadFiles(image);
-        logger.info("New image ID: " + newImageId);
+        logger.info("Uploaded review image with ID: " + newImageId);
         review.setImageId(newImageId);
 
         ReviewDO reviewDO = forumRepository.createOrUpdateReview(forumMapper.convertReviewToReviewDO(review));
@@ -102,24 +109,30 @@ public class ForumServiceImpl implements ForumService {
 
     @Transactional
     public void deleteReviewById(String reviewId) {
+
         logger.info("Deleting review by ID: " + reviewId);
+
         ReviewDO existingReview = getReviewbyId(reviewId);
         authService.validateUser(existingReview.getUserId());
 
         forumRepository.deleteReviewImage(new ObjectId(existingReview.getImageId()));
         logger.info("Deleted reviewImage: " + existingReview.getImageId());
+
         motorcycleModelService.removeReviewIdListById(existingReview.getMotorcycleModelId(), reviewId);
         logger.info(
                 "Review ID removed from motorcycle model (" + existingReview.getMotorcycleModelId() + "): " + reviewId);
+
         forumRepository.deleteReviewById(new ObjectId(reviewId));
         logger.info("Deleted review: " + reviewId);
     }
 
     public ReviewUserView getReviewById(String reviewId) {
+
         ReviewDO reviewDO = getReviewbyId(reviewId);
         MotorcycleModel motorcycleModel = motorcycleModelService
                 .getMotorcycleModelById(reviewDO.getMotorcycleModelId());
         User user = userService.getUserById(reviewDO.getUserId());
+
         return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, user);
     }
 
@@ -134,8 +147,9 @@ public class ForumServiceImpl implements ForumService {
 
     public ReviewCategoryUserViewResponse getAllReviewsByMotorcycleModelId(String motorcycleModelId, int page,
             int size) {
+
         Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, "_id"));
+                Sort.by(Sort.Direction.DESC, "_id"));             
         MotorcycleModel motorcycleModel = motorcycleModelService
                 .getMotorcycleModelById(motorcycleModelId);
         Page<ReviewUserView> reviewUserViews = forumRepository
@@ -144,10 +158,12 @@ public class ForumServiceImpl implements ForumService {
                             User user = userService.getUserById(reviewDO.getUserId());
                             return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, user);
                         });
+
         return forumMapper.convertToReviewCategoryUserViewResponse(reviewUserViews, motorcycleModel);
     }
 
     public Page<ReviewUserView> getMyReviews(int page, int size) {
+
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "_id"));
         User currentUser = authService.getCurrentUser();
@@ -161,6 +177,7 @@ public class ForumServiceImpl implements ForumService {
 
                     return forumMapper.convertReviewDOToUserDTO(reviewDO, motorcycleModel, currentUser);
                 }).toList();
+
         return new PageImpl<>(reviewUserViews, reviewDOPage.getPageable(), reviewDOPage.getTotalElements());
     }
 
@@ -175,6 +192,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     public Page<ReviewUserView> getAllReview(int page, int size) {
+
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "_id"));
         User currentUser = authService.getCurrentUser();
@@ -189,15 +207,20 @@ public class ForumServiceImpl implements ForumService {
     }
 
     public void deleteReviewByUserId(String userId) {
+
         logger.info("Deleting reviews by user ID: " + userId);
+
         User user = authService.validateUser(userId);
         List<ReviewDO> reviews = forumRepository.getReviewsByUserId(user.getId());
+
         if (reviews.isEmpty()) {
             logger.info("No review found for user: " + userId);
             return;
         }
+        
         for (ReviewDO review : reviews) {
             deleteReviewById(review.getId().toString());
+            logger.info("Deleted review with ID: " + review.getId());
         }
     }
 }

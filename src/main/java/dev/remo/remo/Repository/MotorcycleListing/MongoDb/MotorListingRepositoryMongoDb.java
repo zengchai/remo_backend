@@ -17,8 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.DateOperators;
-import org.springframework.data.mongodb.core.aggregation.Fields;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
@@ -34,7 +32,6 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 
-import dev.remo.remo.Models.General.BrandModelAvgPrice;
 import dev.remo.remo.Models.General.ModelCount;
 import dev.remo.remo.Models.General.MonthCount;
 import dev.remo.remo.Models.General.StatusCount;
@@ -63,6 +60,7 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     }
 
     public List<String> uploadFiles(MultipartFile[] files) {
+        
         List<String> storedFileIds = new ArrayList<>();
 
         for (MultipartFile file : files) {
@@ -148,13 +146,16 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     }
 
     public Page<MotorcycleListingDO> getMotorcycleListingByFilter(List<Criteria> criteriaList, Pageable pageable) {
+
         Query query = new Query();
 
         if (!criteriaList.isEmpty()) {
             query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
         }
+
         long total = mongoTemplate.count(query, MotorcycleListingDO.class);
         query.with(pageable);
+
         return new PageImpl<>(mongoTemplate.find(query, MotorcycleListingDO.class), pageable, total);
     }
 
@@ -163,6 +164,7 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     }
 
     public List<MonthCount> getNewListingsPerMonth() {
+
         // Step 1: Convert the Date field directly to "YYYY-MM"
         ProjectionOperation projectToMonth = Aggregation.project()
                 .andExpression("{ $dateToString: { format: \"%Y-%m\", date: \"$createdAt\" } }")
@@ -192,19 +194,20 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
     }
 
     public List<StatusCount> getListingCountByStatus() {
+
         GroupOperation groupByStatus = Aggregation.group("status").count().as("count");
         ProjectionOperation project = Aggregation.project()
                 .and("_id").as("status")
                 .and("count").as("count");
-
         Aggregation aggregation = Aggregation.newAggregation(groupByStatus, project);
-
         AggregationResults<StatusCount> results = mongoTemplate.aggregate(aggregation, "motorcycle_listing",
                 StatusCount.class);
+
         return results.getMappedResults();
     }
 
     public List<ModelCount> getListingCountAndAvgPriceByMotorcycleId() {
+
         // Step 1: Match listings where status is NOT "SUBMITTED"
         MatchOperation matchNotSubmitted = Aggregation.match(Criteria.where("status").ne("SUBMITTED"));
 
@@ -226,6 +229,7 @@ public class MotorListingRepositoryMongoDb implements MotorListingRepository {
 
         AggregationResults<ModelCount> results = mongoTemplate.aggregate(
                 aggregation, "motorcycle_listing", ModelCount.class);
+
         return results.getMappedResults();
     }
 }

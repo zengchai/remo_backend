@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ReviewDO {
-        
+
     @Id
     private ObjectId id;
 
@@ -24,7 +24,7 @@ public class ReviewDO {
 
     @NotBlank
     private String review;
-    
+
     @NotBlank
     private String imageId;
 

@@ -12,23 +12,23 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthService extends UserDetailsService {
 
-    void registerUser(SignUpRequest user);
-
     User getCurrentUser();
 
     User validateUser(String userId);
+
+    UserDetails loadUserByUsername(String email);
 
     JwtResponse refreshToken(String refreshToken, HttpServletResponse response);
 
     JwtResponse signIn(SignInRequest signInRequest, HttpServletResponse response, Authentication authentication);
 
-    void signOut(HttpServletResponse response);
+    void registerUser(SignUpRequest user);
 
-    UserDetails loadUserByUsername(String email);
+    void signOut(HttpServletResponse response);
 
     void initiateResetPassword(String email);
 
-    void verifyResetToken(String email,String token);
+    void verifyResetToken(String email, String token);
 
     void resetPassword(String email, String token, String newPassword);
 }

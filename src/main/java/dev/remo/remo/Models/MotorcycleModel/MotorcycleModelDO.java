@@ -14,15 +14,19 @@ import lombok.Data;
 @Data
 @Builder
 public class MotorcycleModelDO {
-    
+
     @Id
     private ObjectId id;
+
     @NotBlank
     private String brand;
+
     @NotBlank
     private String model;
+
     @NotBlank
     private String imageId;
+
     @NotBlank
     private List<String> reviewIds;
 }

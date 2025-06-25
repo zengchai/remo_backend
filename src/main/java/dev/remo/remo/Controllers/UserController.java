@@ -39,7 +39,6 @@ public class UserController {
                 return ResponseEntity
                                 .ok(GeneralResponse.builder().success(true).error("").message("Updated successfully")
                                                 .build());
-
         }
 
         @GetMapping("/getmyprofile")
@@ -51,7 +50,6 @@ public class UserController {
                                 .ok(GeneralResponse.builder().success(true).error("").message("Fetched successfully")
                                                 .data(userService.getMyProfile())
                                                 .build());
-
         }
 
         @DeleteMapping("/delete/{id}")

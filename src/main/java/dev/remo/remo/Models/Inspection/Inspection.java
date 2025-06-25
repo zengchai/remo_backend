@@ -12,13 +12,20 @@ import lombok.Data;
 @Data
 @Builder
 public class Inspection {
-    
+
     private String id;
+
     private String date;
+
     private String time;
+
     private MotorcycleListing motorcycleListing;
+
     private Shop shop;
+
     private Map<String, Map<VehicleComponentEnum, Integer>> vehicleComponentMap;
+
     private StatusEnum status;
+
     private Map<String, String> extInfo;
 }

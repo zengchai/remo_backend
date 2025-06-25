@@ -6,7 +6,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import dev.remo.remo.Models.General.BrandModelAvgPrice;
 import dev.remo.remo.Models.General.ModelCount;
 import dev.remo.remo.Models.General.MonthCount;
 import dev.remo.remo.Models.General.StatusCount;
