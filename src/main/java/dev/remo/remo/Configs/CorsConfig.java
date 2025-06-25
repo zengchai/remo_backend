@@ -9,7 +9,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000","https://remo-frontend-web.vercel.app/")
+            .allowedOrigins("http://localhost:3000","https://remo-frontend-web.vercel.app")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             .allowedHeaders("*")
             .exposedHeaders("Authorization") // Add this line
