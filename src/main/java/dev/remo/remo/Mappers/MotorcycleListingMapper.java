@@ -130,7 +130,7 @@ public class MotorcycleListingMapper {
                 .phoneNumber(motorcycleListingDO.getPhoneNumber())
                 .status(motorcycleListingDO.getStatus())
                 .createdAt(DateUtil.format(motorcycleListingDO.getCreatedAt()))
-                .imagesIds(motorcycleListingDO.getImagesIds().get(0))
+                .imagesIds(motorcycleListingDO.getImagesIds().get(5))
                 .build();
 
     }

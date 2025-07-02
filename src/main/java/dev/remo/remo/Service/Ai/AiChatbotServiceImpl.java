@@ -47,7 +47,7 @@ public class AiChatbotServiceImpl implements AiChatbotService {
     }
 
     public String extractFromResponse(String promptMessage) {
-
+        logger.info("Sending prompt to AI API: {}", promptMessage);
         RestTemplate restTemplate = new RestTemplate();
         Map<String, Object> response = restTemplate.postForObject(API_URL,
                 groqApiUtils.sendPromptToAiApi(promptMessage), Map.class);

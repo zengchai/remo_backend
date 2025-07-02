@@ -38,6 +38,8 @@ public interface MotorcycleListingService {
 
     MotorcycleListingDetailUserView getMotorcycleListingDetailUserView(String listingId);
 
+    MotorcycleListingDetailUserView getMotorcycleListingForUpdate(String listingId);
+
     Resource getMotorcycleListingImageById(String id);
 
     Page<MotorcycleListingUserView> getMyMotorcycleListing(int page, int size);

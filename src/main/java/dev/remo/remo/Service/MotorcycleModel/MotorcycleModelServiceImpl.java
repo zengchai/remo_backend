@@ -15,10 +15,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.web.multipart.MultipartFile;
 
-import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
-import dev.remo.remo.Models.Request.FilterForumRequest;
 import dev.remo.remo.Mappers.MotorcycleModelMapper;
 import dev.remo.remo.Models.MotorcycleModel.MotorcycleModel;
+import dev.remo.remo.Models.MotorcycleModel.MotorcycleModelDO;
+import dev.remo.remo.Models.Request.FilterForumRequest;
 import dev.remo.remo.Repository.MotorcycleModel.MotorcycleModelRepository;
 import dev.remo.remo.Utils.Exception.InvalidStatusException;
 import dev.remo.remo.Utils.Exception.NotFoundResourceException;
@@ -95,7 +95,7 @@ public class MotorcycleModelServiceImpl implements MotorcycleModelService {
         logger.info("Creating motorcycle model with brand: {}, model: {}", brand, model);
 
         if (motorcycleModelRepository.findByBrandAndModel(brand, model).isPresent()) {
-            throw new InvalidStatusException("Motorcycle model already exists");
+            throw new InvalidStatusException("Motorcycle model has already existed");
         }
 
         String imageId = motorcycleModelRepository.uploadFiles(image);

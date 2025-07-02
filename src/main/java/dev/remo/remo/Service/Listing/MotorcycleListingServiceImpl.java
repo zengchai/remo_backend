@@ -2,6 +2,7 @@ package dev.remo.remo.Service.Listing;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -337,16 +338,37 @@ public class MotorcycleListingServiceImpl implements MotorcycleListingService {
 
     public MotorcycleListingDetailUserView getMotorcycleListingDetailUserView(String listingId) {
 
+        User currentUser = authService.getCurrentUser();
         MotorcycleListing motorcycleListing = getMotorcycleListingById(listingId);
-
         Boolean isFavourite = false;
-        if (authService.getCurrentUser().getFavouriteListingIds() != null) {
-            isFavourite = authService.getCurrentUser().getFavouriteListingIds().stream()
+
+        if ( currentUser.getAuthorities().stream().noneMatch(role -> !role.getAuthority().equals("ROLE_ADMIN"))) {
+            return motorcycleListingMapper.convertToDetailUserDTOView(motorcycleListing, isFavourite);
+        }
+
+        if (currentUser.getFavouriteListingIds() != null) {
+            isFavourite = currentUser.getFavouriteListingIds().stream()
                     .anyMatch(listingId::equals);
+        }
+
+        List<String> imageIds = motorcycleListing.getImagesIds();
+        if (imageIds != null && !imageIds.isEmpty()) {
+            imageIds.remove(0);
+            Collections.reverse(imageIds);
         }
 
         return motorcycleListingMapper.convertToDetailUserDTOView(motorcycleListing,
                 isFavourite);
+    }
+
+    public MotorcycleListingDetailUserView getMotorcycleListingForUpdate(String listingId) {
+
+        User currentUser = authService.getCurrentUser();
+        authService.validateUser(currentUser.getId());
+        MotorcycleListing motorcycleListing = getMotorcycleListingById(listingId);
+
+        return motorcycleListingMapper.convertToDetailUserDTOView(motorcycleListing,
+                false);
     }
 
     public Resource getMotorcycleListingImageById(String id) {

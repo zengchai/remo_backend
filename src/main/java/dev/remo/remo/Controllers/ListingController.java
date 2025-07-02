@@ -140,6 +140,17 @@ public class ListingController {
                                 .build());
         }
 
+        @GetMapping("/getforupdate/{id}")
+        @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+        public ResponseEntity<?> getListingDetailByIdForUpdate(@PathVariable String id, HttpServletRequest http) {
+
+                return ResponseEntity.ok(GeneralResponse.builder()
+                                .success(true)
+                                .error("")
+                                .data(motorcycleListingService.getMotorcycleListingForUpdate(id))
+                                .build());
+        }
+
         @GetMapping("/motorcyclemodel/getall")
         @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
         public ResponseEntity<?> getMotorcycleModelList(HttpServletRequest http) {
